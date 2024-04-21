@@ -6,7 +6,8 @@ import (
 )
 
 func main() {
-	log.Debug().Msg("Running gophermart")
+	log.Logger = log.With().Caller().Logger()
+	log.Error().Msg("Running gophermart")
 	err := application.Run()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")

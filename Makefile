@@ -28,33 +28,38 @@ statictest:
 test: build statictest
 	go test -v ./...
 
-.PHONY:gophermart-run
-gophermart-run: build 
+.PHONY:gophermart-run-with-args
+gophermart-run-with-args: build 
 	chmod +x ./cmd/gophermart/gophermart && \
-	./cmd/gophermart/gophermart -a ${GM_HOST}:${GM_PORT} -d ${PG_DATABASE_DSN}
+		./cmd/gophermart/gophermart -a ${GM_HOST}:${GM_PORT} -d ${PG_DATABASE_DSN}
 
-.PHONY:gophermarttest
-gophermarttest: test db-up
+.PHONY:gophermart-run-with-env
+gophermart-run-with-env: build 
+	chmod +x ./cmd/gophermart/gophermart && \
+		RUN_ADDRESS=${GM_HOST}:${GM_PORT} DATABASE_URI=${PG_DATABASE_DSN} ./cmd/gophermart/gophermart
+
+.PHONY:test-gophermart
+test-gophermart: test db-up
 	./cmd/gophermart/gophermarttest \
 		-test.v -test.run=^TestGophermart$ \
-		-gophermart-binary-path=cmd/gophermart/gophermart \
+		-gophermart-binary-path=./cmd/gophermart/gophermart \
 		-gophermart-host=${GM_HOST} \
 		-gophermart-port=${GM_PORT} \
 		-gophermart-database-uri=${PG_DATABASE_DSN} \
-		-accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
+		-accrual-binary-path=./cmd/accrual/accrual_linux_amd64 \
 		-accrual-host=localhost \
 		-accrual-port=$$(random unused-port) \
 		-accrual-database-uri=${PG_DATABASE_DSN}
 
-.PHONY:gophermarttest-user-auth
-gophermarttest-user-auth: test db-up
+.PHONY:test-gophermart-user-auth
+test-gophermart-user-auth: test db-up
 	./cmd/gophermart/gophermarttest \
 		-test.v -test.run=^TestGophermart/TestUserAuth \
-		-gophermart-binary-path=cmd/gophermart/gophermart \
+		-gophermart-binary-path=./cmd/gophermart/gophermart \
 		-gophermart-host=${GM_HOST} \
 		-gophermart-port=${GM_PORT} \
 		-gophermart-database-uri=${PG_DATABASE_DSN} \
-		-accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
+		-accrual-binary-path=./cmd/accrual/accrual_linux_amd64 \
 		-accrual-host=localhost \
 		-accrual-port=$$(random unused-port) \
 		-accrual-database-uri=${PG_DATABASE_DSN}

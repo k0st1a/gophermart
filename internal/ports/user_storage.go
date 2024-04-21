@@ -1,9 +1,12 @@
 package ports
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 type UserStorage interface {
-	RegisterUser(login, password string) error
+	CreateUser(ctx context.Context, login, password string) (int64, error)
 }
 
 var (
