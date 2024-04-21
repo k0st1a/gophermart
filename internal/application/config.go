@@ -15,8 +15,8 @@ type Config struct {
 }
 
 const (
-	defaultRunAddress           = "localhost:8080"
-	defaultDatabaseURI          = "postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+	defaultRunAddress           = ""
+	defaultDatabaseURI          = ""
 	defaultAccrualSystemAddress = ""
 )
 

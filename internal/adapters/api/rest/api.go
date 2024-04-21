@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	//"github.com/k0st1a/gophermart/internal/ports"
 )
 
 type api struct {

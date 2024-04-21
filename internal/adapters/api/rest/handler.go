@@ -1,14 +1,14 @@
 package rest
 
 import (
-	"github.com/k0st1a/gophermart/internal/ports"
+// "github.com/k0st1a/gophermart/internal/ports"
 )
 
 type handler struct {
-	storage ports.UserStorage
+	storage any
 }
 
-func newHandler(s ports.UserStorage) *handler {
+func newHandler(s any) *handler {
 	return &handler{
 		storage: s,
 	}
