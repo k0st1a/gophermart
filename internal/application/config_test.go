@@ -9,12 +9,16 @@ import (
 )
 
 func TestConfigFromEnv(t *testing.T) {
-	origCommandLineFun := func() {
+	origStateFun := func() {
+		func(args []string) {
+			os.Args = args
+		}(os.Args)
+
 		func(cl *flag.FlagSet) {
 			flag.CommandLine = cl
 		}(flag.CommandLine)
 	}
-	defer origCommandLineFun()
+	defer origStateFun()
 
 	tests := []struct {
 		name string
@@ -53,19 +57,16 @@ func TestConfigFromEnv(t *testing.T) {
 }
 
 func TestConfigFromFlags(t *testing.T) {
-	origCommandLineFun := func() {
+	origStateFun := func() {
+		func(args []string) {
+			os.Args = args
+		}(os.Args)
+
 		func(cl *flag.FlagSet) {
 			flag.CommandLine = cl
 		}(flag.CommandLine)
 	}
-	defer origCommandLineFun()
-
-	origArgsFun := func() {
-		func(args []string) {
-			os.Args = args
-		}(os.Args)
-	}
-	defer origArgsFun()
+	defer origStateFun()
 
 	tests := []struct {
 		name string
@@ -98,26 +99,22 @@ func TestConfigFromFlags(t *testing.T) {
 			err := parseFlags(cfg)
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
-			origArgsFun()
-			origCommandLineFun()
+			origStateFun()
 		})
 	}
 }
 
 func TestConfig(t *testing.T) {
-	origCommandLineFun := func() {
+	origStateFun := func() {
+		func(args []string) {
+			os.Args = args
+		}(os.Args)
+
 		func(cl *flag.FlagSet) {
 			flag.CommandLine = cl
 		}(flag.CommandLine)
 	}
-	defer origCommandLineFun()
-
-	origArgsFun := func() {
-		func(args []string) {
-			os.Args = args
-		}(os.Args)
-	}
-	defer origArgsFun()
+	defer origStateFun()
 
 	tests := []struct {
 		name string
@@ -158,8 +155,7 @@ func TestConfig(t *testing.T) {
 			cfg, err := collectConfig()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
-			origArgsFun()
-			origCommandLineFun()
+			origStateFun()
 		})
 	}
 }
