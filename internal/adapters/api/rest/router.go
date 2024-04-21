@@ -10,4 +10,5 @@ func newRouter() *chi.Mux {
 
 func buildRoute(r *chi.Mux, h *handler) {
 	r.Post("/api/user/register", h.userRegistrationHandler)
+	r.Post("/api/user/login", h.userAuthorizationHandler)
 }
