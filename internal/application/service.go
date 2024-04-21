@@ -10,7 +10,7 @@ import (
 )
 
 func Run() error {
-	log.Debug().Msg("Running application")
+	log.Error().Msg("Running application")
 	ctx := context.Background()
 
 	cfg, err := collectConfig()
