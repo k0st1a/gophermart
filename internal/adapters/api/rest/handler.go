@@ -4,8 +4,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
+	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/k0st1a/gophermart/internal/ports"
 	"github.com/rs/zerolog/log"
@@ -13,6 +13,7 @@ import (
 
 type handler struct {
 	storage ports.UserStorage
+	auth    auth.UserAuthenticator
 }
 
 func newHandler(s ports.UserStorage) *handler {
@@ -22,11 +23,6 @@ func newHandler(s ports.UserStorage) *handler {
 }
 
 func (h *handler) userRegistrationHandler(rw http.ResponseWriter, r *http.Request) {
-	log.Info().
-		Str("uri", r.RequestURI).
-		Str("method", r.Method).
-		Msg("")
-
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error().Err(err).Msg("io.ReadAll error")
@@ -37,25 +33,43 @@ func (h *handler) userRegistrationHandler(rw http.ResponseWriter, r *http.Reques
 	ur, err := user.DeserializeRegister(b)
 	if err != nil {
 		log.Error().Err(err).Msg("user registration deserialize error")
-		http.Error(rw, "deserialize error", http.StatusBadRequest)
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = ur.Validate()
 	if err != nil {
 		log.Error().Err(err).Msg("user registration validation error")
-		http.Error(rw, "validation error", http.StatusBadRequest)
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	id, err := h.storage.CreateUser(r.Context(), ur.Login, ur.Password)
+	ph, err := h.auth.GeneratePasswordHash(ur.Password)
 	if err != nil {
-		log.Error().Err(err).Msg("user create error")
-		http.Error(rw, "user create error", http.StatusBadRequest)
+		log.Error().Err(err).Msg("error of generate password hash")
+		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rw.Header().Set("Authorization", strconv.FormatInt(id, 10))
+	id, err := h.storage.CreateUser(r.Context(), ur.Login, ph)
+	if err != nil {
+		if errors.Is(err, ports.ErrLoginAlreadyBusy) {
+			rw.WriteHeader(http.StatusConflict)
+			return
+		}
+		log.Error().Err(err).Msg("user create error")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	t, err := h.auth.GenerateToken(id)
+	if err != nil {
+		log.Error().Err(err).Msg("error of generate token")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Authorization", t)
 	rw.WriteHeader(http.StatusOK)
 }
 
@@ -86,18 +100,30 @@ func (h *handler) userAuthorizationHandler(rw http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	id, err := h.storage.GetUser(r.Context(), ul.Login, ul.Password)
+	userID, password, err := h.storage.GetUserIDAndPassword(r.Context(), ul.Login)
 	if err != nil {
 		if errors.Is(err, ports.ErrUserNotFound) {
-			http.Error(rw, "invalid login or password", http.StatusConflict)
+			rw.WriteHeader(http.StatusConflict)
 			return
 		}
-
-		log.Error().Err(err).Msg("get user error")
+		log.Error().Err(err).Msg("error of get user password")
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	rw.Header().Set("Authorization", strconv.FormatInt(id, 10))
+	err = h.auth.CheckPasswordHash(ul.Password, password)
+	if err != nil {
+		rw.WriteHeader(http.StatusConflict)
+		return
+	}
+
+	t, err := h.auth.GenerateToken(userID)
+	if err != nil {
+		log.Error().Err(err).Msg("error of generate token")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Authorization", t)
 	rw.WriteHeader(http.StatusOK)
 }
