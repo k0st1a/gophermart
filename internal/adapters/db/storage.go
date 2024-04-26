@@ -43,16 +43,17 @@ func (d *db) CreateUser(ctx context.Context, login, password string) (int64, err
 	return id, nil
 }
 
-func (d *db) GetUser(ctx context.Context, login, password string) (int64, error) {
-	log.Printf("GetUser, login:%s, password:%s", login, password)
+func (d *db) GetUserIDAndPassword(ctx context.Context, login string) (int64, string, error) {
+	log.Printf("GetUserIDAndPassword, login:%s", login)
 	var id int64
+	var password string
 
-	err := d.pool.QueryRow(ctx, "SELECT id FROM users WHERE login = $1 AND password = $2 LIMIT 1", login, password).Scan(&id)
+	err := d.pool.QueryRow(ctx, "SELECT id, password FROM users WHERE login = $1", login, password).Scan(&id, &password)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return id, ports.ErrUserNotFound
+		return 0, "", ports.ErrUserNotFound
 	}
 
-	return id, nil
+	return id, password, nil
 }
 
 func (d *db) Close() {

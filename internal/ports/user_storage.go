@@ -7,7 +7,7 @@ import (
 
 type UserStorage interface {
 	CreateUser(ctx context.Context, login, password string) (int64, error)
-	GetUser(ctx context.Context, login, password string) (int64, error)
+	GetUserIDAndPassword(ctx context.Context, login string) (int64, string, error)
 }
 
 var (
