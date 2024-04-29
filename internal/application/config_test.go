@@ -36,6 +36,7 @@ func TestConfigFromEnv(t *testing.T) {
 				RunAddress:           "RUN_ADDRESS_VALUE_FROM_ENV",
 				DatabaseURI:          "DATABASE_URI_VALUE_FROM_ENV",
 				AccrualSystemAddress: "ACCRUAL_SYSTEM_ADDRESS_VALUE_FROM_ENV",
+				SecretKey:            "defaultSecretKey",
 			},
 		},
 	}
@@ -85,6 +86,7 @@ func TestConfigFromFlags(t *testing.T) {
 				RunAddress:           "RUN_ADDRESS_VALUE_FROM_FLAG",
 				DatabaseURI:          "DATABASE_URI_VALUE_FROM_FLAG",
 				AccrualSystemAddress: "ACCRUAL_SYSTEM_ADDRESS_VALUE_FROM_FLAG",
+				SecretKey:            "defaultSecretKey",
 			},
 		},
 	}
@@ -139,6 +141,7 @@ func TestConfig(t *testing.T) {
 				RunAddress:           "RUN_ADDRESS_VALUE_FROM_FLAG",
 				DatabaseURI:          "DATABASE_URI_VALUE_FROM_FLAG",
 				AccrualSystemAddress: "ACCRUAL_SYSTEM_ADDRESS_VALUE_FROM_FLAG",
+				SecretKey:            "defaultSecretKey",
 			},
 		},
 	}

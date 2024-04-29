@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserAuthenticator interface {
+type UserAuthentication interface {
 	GenerateToken(userID int64) (string, error)
 	GetUserID(token string) (int64, error)
 	GeneratePasswordHash(password string) (string, error)
