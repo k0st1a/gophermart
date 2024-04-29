@@ -21,7 +21,7 @@ func BuildRoute(h *handler, a auth.UserAuthentication) *chi.Mux {
 		r.Group(func(r chi.Router) {
 			r.Use(authenticate(a))
 			r.Post(`/orders`, h.createOrder)
-			r.Get(`/orsers`, h.getOrders)
+			r.Get(`/orders`, h.getOrders)
 			r.Get(`/balance`, h.getBalance)
 			r.Post(`/balance/withdraw`, h.createWithdraw)
 			r.Get(`/withdrawals`, h.getWithdrawals)

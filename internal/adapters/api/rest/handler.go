@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/ShiraazMoollatjie/goluhn"
+	"github.com/k0st1a/gophermart/internal/adapters/api/rest/models"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
@@ -177,6 +178,47 @@ func (h *handler) createOrder(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	orders, err := h.order.GetOrders(r.Context(), userID)
+	if err != nil {
+		log.Error().Err(err).Msg("error of get orders")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("orders:%+v", orders)
+
+	var modelOrders rest.Orders
+	for _, o := range orders {
+		modelOrders = append(modelOrders, rest.Order(o))
+	}
+	log.Printf("modelOrders:%+v", modelOrders)
+
+	if len(orders) == 0 {
+		rw.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	data, err := rest.SerializeOrders(&modelOrders)
+	if err != nil {
+		log.Error().Err(err).Msg("error of serialize orders")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	_, err = rw.Write(data)
+	if err != nil {
+		log.Error().Err(err).Msg("error of write orders")
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) getBalance(rw http.ResponseWriter, r *http.Request) {

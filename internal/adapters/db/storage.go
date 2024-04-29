@@ -86,6 +86,39 @@ func (d *db) CreateOrder(ctx context.Context, tx pgx.Tx, userID, orderID int64) 
 	return nil
 }
 
+func (d *db) GetOrders(ctx context.Context, tx pgx.Tx, userID int64) ([]ports.Order, error) {
+	var orders []ports.Order
+
+	rows, err := tx.Query(ctx,
+		"SELECT id, status, accrual, uploaded_at FROM orders "+
+			"WHERE user_id = $1 ORDER BY uploaded_at",
+		userID)
+	if err != nil {
+		return orders, fmt.Errorf("query error of get orders:%w", err)
+	}
+
+	for rows.Next() {
+		var o ports.Order
+		err = rows.Scan(
+			&o.Number,
+			&o.Status,
+			&o.Accrual,
+			&o.UploadedAt,
+		)
+		if err != nil {
+			return orders, fmt.Errorf("scan error of get orders:%w", err)
+		}
+		orders = append(orders, o)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return orders, fmt.Errorf("error of get orders:%w", err)
+	}
+
+	return orders, nil
+}
+
 func (d *db) Close() {
 	d.pool.Close()
 }

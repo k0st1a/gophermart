@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS orders (
     status      status_type NOT NULL DEFAULT 'NEW',
     user_id     bigint NOT NULL REFERENCES users (id) ON DELETE RESTRICT,
     accrual     double precision NULL,
-    updated_at  timestamp NOT NULL DEFAULT NOW()
+    uploaded_at timestamp NOT NULL DEFAULT NOW()
 );
 
 COMMIT;

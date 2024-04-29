@@ -64,6 +64,19 @@ test-gophermart-user-auth: test db-up
 		-accrual-port=$$(random unused-port) \
 		-accrual-database-uri=${PG_DATABASE_DSN}
 
+.PHONY:test-gophermart-user-orders
+test-gophermart-user-orders: test db-up
+	./cmd/gophermart/gophermarttest \
+		-test.v -test.run=^TestGophermart/TestUserOrders \
+		-gophermart-binary-path=./cmd/gophermart/gophermart \
+		-gophermart-host=${GM_HOST} \
+		-gophermart-port=${GM_PORT} \
+		-gophermart-database-uri=${PG_DATABASE_DSN} \
+		-accrual-binary-path=./cmd/accrual/accrual_linux_amd64 \
+		-accrual-host=localhost \
+		-accrual-port=$$(random unused-port) \
+		-accrual-database-uri=${PG_DATABASE_DSN}
+
 .PHONY: db-up
 db-up:
 	PG_USER=${PG_USER} \

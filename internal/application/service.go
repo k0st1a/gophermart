@@ -12,7 +12,7 @@ import (
 )
 
 func Run() error {
-	log.Error().Msg("Running application")
+	log.Printf("Running application")
 	ctx := context.Background()
 
 	cfg, err := collectConfig()
