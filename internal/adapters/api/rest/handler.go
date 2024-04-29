@@ -4,8 +4,11 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
+	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
+	"github.com/k0st1a/gophermart/internal/pkg/order"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/k0st1a/gophermart/internal/ports"
 	"github.com/rs/zerolog/log"
@@ -14,24 +17,26 @@ import (
 type handler struct {
 	storage ports.UserStorage
 	auth    auth.UserAuthentication
+	order   order.OrderManagment
 }
 
-func NewHandler(storage ports.UserStorage, auth auth.UserAuthentication) *handler {
+func NewHandler(storage ports.UserStorage, auth auth.UserAuthentication, order order.OrderManagment) *handler {
 	return &handler{
 		storage: storage,
 		auth:    auth,
+		order:   order,
 	}
 }
 
 func (h *handler) register(rw http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error().Err(err).Msg("io.ReadAll error")
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	ur, err := user.DeserializeRegister(b)
+	ur, err := user.DeserializeRegister(data)
 	if err != nil {
 		log.Error().Err(err).Msg("user registration deserialize error")
 		rw.WriteHeader(http.StatusBadRequest)
@@ -75,19 +80,14 @@ func (h *handler) register(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) login(rw http.ResponseWriter, r *http.Request) {
-	log.Info().
-		Str("uri", r.RequestURI).
-		Str("method", r.Method).
-		Msg("")
-
-	b, err := io.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error().Err(err).Msg("io.ReadAll error")
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	ul, err := user.DeserializeLogin(b)
+	ul, err := user.DeserializeLogin(data)
 	if err != nil {
 		log.Error().Err(err).Msg("user login deserialize error")
 		http.Error(rw, "deserialize error", http.StatusBadRequest)
@@ -130,6 +130,50 @@ func (h *handler) login(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) createOrder(rw http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("body read error")
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	orderNumber := string(data)
+	err = goluhn.Validate(orderNumber)
+	if err != nil {
+		http.Error(rw, "invalid order number format", http.StatusUnprocessableEntity)
+		return
+	}
+
+	orderID, err := strconv.ParseInt(orderNumber, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Msg("order number parsing error")
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.order.CreateOrder(r.Context(), userID, orderID)
+	if err != nil {
+		switch {
+		case errors.Is(err, order.ErrOrderAlreadyUploadedByThisUser):
+			rw.WriteHeader(http.StatusOK)
+			return
+		case errors.Is(err, order.ErrOrderAlreadyUploadedByAnotherUser):
+			rw.WriteHeader(http.StatusConflict)
+			return
+		default:
+			log.Error().Err(err).Msg("create order error")
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	rw.WriteHeader(http.StatusAccepted)
 }
 
 func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {

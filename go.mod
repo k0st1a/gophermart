@@ -3,6 +3,7 @@ module github.com/k0st1a/gophermart
 go 1.21.6
 
 require (
+	github.com/ShiraazMoollatjie/goluhn v0.0.0-20211017190329-0d86158c056a
 	github.com/caarlos0/env/v10 v10.0.0
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-playground/validator v9.31.0+incompatible
@@ -12,6 +13,7 @@ require (
 	github.com/mailru/easyjson v0.7.7
 	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.8.4
+	github.com/theplant/luhn v0.0.0-20170224032821-81a1a381387a
 	golang.org/x/crypto v0.20.0
 )
 

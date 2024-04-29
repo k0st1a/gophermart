@@ -48,12 +48,42 @@ func (d *db) GetUserIDAndPassword(ctx context.Context, login string) (int64, str
 	var id int64
 	var password string
 
-	err := d.pool.QueryRow(ctx, "SELECT id, password FROM users WHERE login = $1", login, password).Scan(&id, &password)
+	err := d.pool.QueryRow(ctx, "SELECT id, password FROM users WHERE login = $1", login).Scan(&id, &password)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, "", ports.ErrUserNotFound
 	}
 
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to get user id and password:%w", err)
+	}
+
 	return id, password, nil
+}
+
+func (d *db) GetOrderUserID(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error) {
+	log.Printf("GetOrderUserID, orderID:%v", orderID)
+	var userID int64
+
+	err := d.pool.QueryRow(ctx, "SELECT user_id FROM orders WHERE id = $1", orderID).Scan(&userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ports.ErrOrderNotFound
+	}
+
+	return userID, nil
+}
+
+func (d *db) CreateOrder(ctx context.Context, tx pgx.Tx, userID, orderID int64) error {
+	log.Printf("CreateOrder, userID:%v, orderID:%v", userID, orderID)
+	var id int64
+
+	err := d.pool.QueryRow(ctx,
+		"INSERT INTO orders (id,status,user_id) VALUES($1,$2,$3) RETURNING id", orderID, "NEW", userID).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("failed to create order:%w", err)
+	}
+
+	log.Printf("Created order, id:%v", id)
+	return nil
 }
 
 func (d *db) Close() {
