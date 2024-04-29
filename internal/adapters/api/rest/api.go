@@ -6,23 +6,18 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/k0st1a/gophermart/internal/ports"
+	"github.com/rs/zerolog/log"
 )
 
 type api struct {
 	server *http.Server
 }
 
-func NewAPI(ctx context.Context, address string, storage ports.UserStorage) *api {
-	h := newHandler(storage)
-
-	r := newRouter()
-	buildRoute(r, h)
-
+func NewAPI(ctx context.Context, address string, handler http.Handler) *api {
 	s := &http.Server{
 		BaseContext: func(_ net.Listener) context.Context { return ctx },
 		Addr:        address,
-		Handler:     r,
+		Handler:     handler,
 	}
 
 	return &api{
@@ -31,6 +26,8 @@ func NewAPI(ctx context.Context, address string, storage ports.UserStorage) *api
 }
 
 func (a *api) Run() error {
+	log.Printf("Run api")
+
 	err := a.server.ListenAndServe()
 	if err != nil {
 		return fmt.Errorf("listen and serve error:%w", err)

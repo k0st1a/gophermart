@@ -13,16 +13,17 @@ import (
 
 type handler struct {
 	storage ports.UserStorage
-	auth    auth.UserAuthenticator
+	auth    auth.UserAuthentication
 }
 
-func newHandler(s ports.UserStorage) *handler {
+func NewHandler(storage ports.UserStorage, auth auth.UserAuthentication) *handler {
 	return &handler{
-		storage: s,
+		storage: storage,
+		auth:    auth,
 	}
 }
 
-func (h *handler) userRegistrationHandler(rw http.ResponseWriter, r *http.Request) {
+func (h *handler) register(rw http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Error().Err(err).Msg("io.ReadAll error")
@@ -73,7 +74,7 @@ func (h *handler) userRegistrationHandler(rw http.ResponseWriter, r *http.Reques
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (h *handler) userAuthorizationHandler(rw http.ResponseWriter, r *http.Request) {
+func (h *handler) login(rw http.ResponseWriter, r *http.Request) {
 	log.Info().
 		Str("uri", r.RequestURI).
 		Str("method", r.Method).
@@ -126,4 +127,19 @@ func (h *handler) userAuthorizationHandler(rw http.ResponseWriter, r *http.Reque
 
 	rw.Header().Set("Authorization", t)
 	rw.WriteHeader(http.StatusOK)
+}
+
+func (h *handler) createOrder(rw http.ResponseWriter, r *http.Request) {
+}
+
+func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
+}
+
+func (h *handler) getBalance(rw http.ResponseWriter, r *http.Request) {
+}
+
+func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
+}
+
+func (h *handler) getWithdrawals(rw http.ResponseWriter, r *http.Request) {
 }
