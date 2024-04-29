@@ -9,15 +9,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const authorizationHeader = "Authorization"
-
 type ctxUserID struct{}
 
 func authenticate(auth auth.UserAuthentication) func(next http.Handler) http.Handler {
 	// Подсмотрено в https://github.com/go-chi/chi/blob/master/middleware/content_type.go
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			ah := r.Header.Get(authorizationHeader)
+			ah := r.Header.Get("Authorization")
 			if ah == "" {
 				log.Printf("Authorization header not set")
 				rw.WriteHeader(http.StatusUnauthorized)

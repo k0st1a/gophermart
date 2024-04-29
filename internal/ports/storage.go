@@ -2,7 +2,9 @@ package ports
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -20,6 +22,7 @@ var (
 type OrderStorage interface {
 	GetOrderUserID(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error)
 	CreateOrder(ctx context.Context, tx pgx.Tx, userID, orderID int64) error
+	GetOrders(ctx context.Context, tx pgx.Tx, userID int64) ([]Order, error)
 
 	BeginTx(ctx context.Context) (pgx.Tx, error)
 	Rollback(ctx context.Context, tx pgx.Tx) error
@@ -29,3 +32,10 @@ type OrderStorage interface {
 var (
 	ErrOrderNotFound = errors.New("order not found")
 )
+
+type Order struct {
+	Number     int64
+	Status     string
+	Accrual    sql.NullFloat64
+	UploadedAt time.Time
+}

@@ -7,7 +7,7 @@ import (
 
 func main() {
 	log.Logger = log.With().Caller().Logger()
-	log.Error().Msg("Running gophermart")
+	log.Printf("Running gophermart")
 	err := application.Run()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
