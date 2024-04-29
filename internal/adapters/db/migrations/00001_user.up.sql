@@ -1,7 +1,7 @@
 BEGIN TRANSACTION;
 
-CREATE TABLE IF NOT EXISTS users(
-    id serial PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS users (
+    id bigserial PRIMARY KEY,
     login TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
 );
