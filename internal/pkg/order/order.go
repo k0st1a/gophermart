@@ -9,9 +9,9 @@ import (
 	"github.com/k0st1a/gophermart/internal/ports"
 )
 
-type OrderManagment interface {
-	CreateOrder(ctx context.Context, userID, orderID int64) error
-	GetOrders(ctx context.Context, userID int64) ([]Order, error)
+type Managment interface {
+	Create(ctx context.Context, userID, orderID int64) error
+	List(ctx context.Context, userID int64) ([]Order, error)
 }
 
 type Order struct {
@@ -22,21 +22,21 @@ type Order struct {
 }
 
 var (
-	ErrOrderAlreadyUploadedByAnotherUser = errors.New("order already uploaded by another user")
-	ErrOrderAlreadyUploadedByThisUser    = errors.New("order already uploaded by this user")
+	ErrAlreadyUploadedByAnotherUser = errors.New("order already uploaded by another user")
+	ErrAlreadyUploadedByThisUser    = errors.New("order already uploaded by this user")
 )
 
 type order struct {
 	storage ports.OrderStorage
 }
 
-func New(storage ports.OrderStorage) OrderManagment {
+func New(storage ports.OrderStorage) Managment {
 	return &order{
 		storage: storage,
 	}
 }
 
-func (o *order) CreateOrder(ctx context.Context, userID, orderID int64) error {
+func (o *order) Create(ctx context.Context, userID, orderID int64) error {
 	tx, err := o.storage.BeginTx(ctx)
 	if err != nil {
 		return fmt.Errorf("error of begin transaction:%w", err)
@@ -60,13 +60,13 @@ func (o *order) CreateOrder(ctx context.Context, userID, orderID int64) error {
 	}
 
 	if dbUserID != userID {
-		return ErrOrderAlreadyUploadedByAnotherUser
+		return ErrAlreadyUploadedByAnotherUser
 	}
 
-	return ErrOrderAlreadyUploadedByThisUser
+	return ErrAlreadyUploadedByThisUser
 }
 
-func (o *order) GetOrders(ctx context.Context, userID int64) ([]Order, error) {
+func (o *order) List(ctx context.Context, userID int64) ([]Order, error) {
 	var orders []Order
 
 	tx, err := o.storage.BeginTx(ctx)

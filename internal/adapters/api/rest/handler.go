@@ -17,10 +17,10 @@ import (
 type handler struct {
 	auth  auth.UserAuthentication
 	user  user.Managment
-	order order.OrderManagment
+	order order.Managment
 }
 
-func NewHandler(auth auth.UserAuthentication, user user.Managment, order order.OrderManagment) *handler {
+func NewHandler(auth auth.UserAuthentication, user user.Managment, order order.Managment) *handler {
 	return &handler{
 		auth:  auth,
 		user:  user,
@@ -145,13 +145,13 @@ func (h *handler) createOrder(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.order.CreateOrder(r.Context(), userID, orderID)
+	err = h.order.Create(r.Context(), userID, orderID)
 	if err != nil {
 		switch {
-		case errors.Is(err, order.ErrOrderAlreadyUploadedByThisUser):
+		case errors.Is(err, order.ErrAlreadyUploadedByThisUser):
 			rw.WriteHeader(http.StatusOK)
 			return
-		case errors.Is(err, order.ErrOrderAlreadyUploadedByAnotherUser):
+		case errors.Is(err, order.ErrAlreadyUploadedByAnotherUser):
 			rw.WriteHeader(http.StatusConflict)
 			return
 		default:
@@ -171,7 +171,7 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := h.order.GetOrders(r.Context(), userID)
+	orders, err := h.order.List(r.Context(), userID)
 	if err != nil {
 		log.Error().Err(err).Msg("error of get orders")
 		rw.WriteHeader(http.StatusInternalServerError)
