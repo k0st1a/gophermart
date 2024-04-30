@@ -69,7 +69,7 @@ func (d *db) GetUserIDAndPassword(ctx context.Context, login string) (int64, str
 	return id, password, nil
 }
 
-func (d *db) GetOrderUserID(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error) {
+func (d *db) GetOrderUserID(ctx context.Context, orderID int64) (int64, error) {
 	log.Printf("GetOrderUserID, orderID:%v", orderID)
 	var userID int64
 
@@ -81,7 +81,7 @@ func (d *db) GetOrderUserID(ctx context.Context, tx pgx.Tx, orderID int64) (int6
 	return userID, nil
 }
 
-func (d *db) CreateOrder(ctx context.Context, tx pgx.Tx, userID, orderID int64) error {
+func (d *db) CreateOrder(ctx context.Context, userID, orderID int64) error {
 	log.Printf("CreateOrder, userID:%v, orderID:%v", userID, orderID)
 	var id int64
 
@@ -95,10 +95,10 @@ func (d *db) CreateOrder(ctx context.Context, tx pgx.Tx, userID, orderID int64) 
 	return nil
 }
 
-func (d *db) GetOrders(ctx context.Context, tx pgx.Tx, userID int64) ([]ports.Order, error) {
+func (d *db) GetOrders(ctx context.Context, userID int64) ([]ports.Order, error) {
 	var orders []ports.Order
 
-	rows, err := tx.Query(ctx,
+	rows, err := d.pool.Query(ctx,
 		"SELECT id, status, accrual, uploaded_at FROM orders "+
 			"WHERE user_id = $1 ORDER BY uploaded_at",
 		userID)

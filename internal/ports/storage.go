@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"time"
-
-	"github.com/jackc/pgx/v5"
 )
 
 type UserStorage interface {
@@ -20,13 +18,9 @@ var (
 )
 
 type OrderStorage interface {
-	GetOrderUserID(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error)
-	CreateOrder(ctx context.Context, tx pgx.Tx, userID, orderID int64) error
-	GetOrders(ctx context.Context, tx pgx.Tx, userID int64) ([]Order, error)
-
-	BeginTx(ctx context.Context) (pgx.Tx, error)
-	Rollback(ctx context.Context, tx pgx.Tx) error
-	Commit(ctx context.Context, tx pgx.Tx) error
+	GetOrderUserID(ctx context.Context, orderID int64) (int64, error)
+	CreateOrder(ctx context.Context, userID, orderID int64) error
+	GetOrders(ctx context.Context, userID int64) ([]Order, error)
 }
 
 var (
