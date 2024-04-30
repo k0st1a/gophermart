@@ -37,18 +37,10 @@ func New(storage ports.OrderStorage) Managment {
 }
 
 func (o *order) Create(ctx context.Context, userID, orderID int64) error {
-	tx, err := o.storage.BeginTx(ctx)
-	if err != nil {
-		return fmt.Errorf("error of begin transaction:%w", err)
-	}
-	defer func() {
-		_ = o.storage.Commit(ctx, tx)
-	}()
-
-	dbUserID, err := o.storage.GetOrderUserID(ctx, tx, orderID)
+	dbUserID, err := o.storage.GetOrderUserID(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, ports.ErrOrderNotFound) {
-			err = o.storage.CreateOrder(ctx, tx, userID, orderID)
+			err = o.storage.CreateOrder(ctx, userID, orderID)
 			if err != nil {
 				return fmt.Errorf("failed to create order:%w", err)
 			}
@@ -69,15 +61,7 @@ func (o *order) Create(ctx context.Context, userID, orderID int64) error {
 func (o *order) List(ctx context.Context, userID int64) ([]Order, error) {
 	var orders []Order
 
-	tx, err := o.storage.BeginTx(ctx)
-	if err != nil {
-		return orders, fmt.Errorf("error of begin transaction:%w", err)
-	}
-	defer func() {
-		_ = o.storage.Commit(ctx, tx)
-	}()
-
-	dbOrders, err := o.storage.GetOrders(ctx, tx, userID)
+	dbOrders, err := o.storage.GetOrders(ctx, userID)
 	if err != nil {
 		return orders, fmt.Errorf("error of get orders from storage:%w", err)
 	}
