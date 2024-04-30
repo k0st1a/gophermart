@@ -10,21 +10,21 @@ import (
 	"github.com/k0st1a/gophermart/internal/adapters/api/rest/models"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
-	"github.com/k0st1a/gophermart/internal/ports"
+	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/rs/zerolog/log"
 )
 
 type handler struct {
-	storage ports.UserStorage
-	auth    auth.UserAuthentication
-	order   order.OrderManagment
+	auth  auth.UserAuthentication
+	user  user.Managment
+	order order.OrderManagment
 }
 
-func NewHandler(storage ports.UserStorage, auth auth.UserAuthentication, order order.OrderManagment) *handler {
+func NewHandler(auth auth.UserAuthentication, user user.Managment, order order.OrderManagment) *handler {
 	return &handler{
-		storage: storage,
-		auth:    auth,
-		order:   order,
+		auth:  auth,
+		user:  user,
+		order: order,
 	}
 }
 
@@ -43,20 +43,21 @@ func (h *handler) register(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ph, err := h.auth.GeneratePasswordHash(ur.Password)
+	passwordHash, err := h.auth.GeneratePasswordHash(ur.Password)
 	if err != nil {
 		log.Error().Err(err).Msg("error of generate password hash")
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	id, err := h.storage.CreateUser(r.Context(), ur.Login, ph)
+	id, err := h.user.Create(r.Context(), ur.Login, passwordHash)
 	if err != nil {
-		if errors.Is(err, ports.ErrLoginAlreadyBusy) {
+		if errors.Is(err, user.ErrLoginAlreadyBusy) {
 			rw.WriteHeader(http.StatusConflict)
 			return
 		}
-		log.Error().Err(err).Msg("user create error")
+
+		log.Error().Err(err).Msg("error of create user")
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -87,13 +88,14 @@ func (h *handler) login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, password, err := h.storage.GetUserIDAndPassword(r.Context(), ul.Login)
+	userID, password, err := h.user.GetIDAndPassword(r.Context(), ul.Login)
 	if err != nil {
-		if errors.Is(err, ports.ErrUserNotFound) {
+		if errors.Is(err, user.ErrNotFound) {
 			rw.WriteHeader(http.StatusConflict)
 			return
 		}
-		log.Error().Err(err).Msg("error of get user password")
+
+		log.Error().Err(err).Msg("error of get user id and password")
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
