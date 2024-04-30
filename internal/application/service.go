@@ -8,6 +8,7 @@ import (
 	"github.com/k0st1a/gophermart/internal/adapters/db"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
+	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/rs/zerolog/log"
 )
 
@@ -28,9 +29,10 @@ func Run() error {
 	}
 
 	auth := auth.New(cfg.SecretKey)
+	user := user.New(db)
 	order := order.New(db)
 
-	h := rest.NewHandler(db, auth, order)
+	h := rest.NewHandler(auth, user, order)
 	r := rest.BuildRoute(h, auth)
 
 	api := rest.NewAPI(ctx, cfg.RunAddress, r)
