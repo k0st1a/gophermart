@@ -10,7 +10,6 @@ import (
 	"github.com/k0st1a/gophermart/internal/adapters/api/rest/models"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
-	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/k0st1a/gophermart/internal/ports"
 	"github.com/rs/zerolog/log"
 )
@@ -37,16 +36,9 @@ func (h *handler) register(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ur, err := user.DeserializeRegister(data)
+	ur, err := models.DeserializeRegister(data)
 	if err != nil {
 		log.Error().Err(err).Msg("user registration deserialize error")
-		rw.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = ur.Validate()
-	if err != nil {
-		log.Error().Err(err).Msg("user registration validation error")
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -88,17 +80,10 @@ func (h *handler) login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ul, err := user.DeserializeLogin(data)
+	ul, err := models.DeserializeLogin(data)
 	if err != nil {
 		log.Error().Err(err).Msg("user login deserialize error")
 		http.Error(rw, "deserialize error", http.StatusBadRequest)
-		return
-	}
-
-	err = ul.Validate()
-	if err != nil {
-		log.Error().Err(err).Msg("user login validation error")
-		http.Error(rw, "validation error", http.StatusBadRequest)
 		return
 	}
 
@@ -193,9 +178,9 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 
 	log.Printf("orders:%+v", orders)
 
-	var modelOrders rest.Orders
+	var modelOrders models.Orders
 	for _, o := range orders {
-		modelOrders = append(modelOrders, rest.Order(o))
+		modelOrders = append(modelOrders, models.Order(o))
 	}
 	log.Printf("modelOrders:%+v", modelOrders)
 
@@ -204,7 +189,7 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := rest.SerializeOrders(&modelOrders)
+	data, err := models.SerializeOrders(&modelOrders)
 	if err != nil {
 		log.Error().Err(err).Msg("error of serialize orders")
 		rw.WriteHeader(http.StatusInternalServerError)
