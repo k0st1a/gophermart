@@ -35,7 +35,16 @@ func (d *db) CreateUser(ctx context.Context, login, password string) (int64, err
 	log.Printf("CreateUser, login:%s, password:%s", login, password)
 	var id int64
 
-	err := d.pool.QueryRow(ctx, "INSERT INTO users (login,password) VALUES($1,$2) RETURNING id", login, password).Scan(&id)
+	err := d.pool.QueryRow(ctx,
+		"INSERT INTO users (login,password) VALUES($1,$2) "+
+			"ON CONFLICT DO NOTHING "+
+			"RETURNING id",
+		login, password).Scan(&id)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ports.ErrLoginAlreadyBusy
+	}
+
 	if err != nil {
 		return id, fmt.Errorf("failed to create user:%w", err)
 	}
