@@ -196,6 +196,38 @@ func (d *db) CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int6
 	return nil
 }
 
+func (d *db) GetWithdrawals(ctx context.Context, userID int64) ([]ports.Withdraw, error) {
+	var withdrawals []ports.Withdraw
+
+	rows, err := d.pool.Query(ctx,
+		"SELECT order_id, sum, processed_at FROM withdrawals "+
+			"WHERE user_id = $1 ORDER BY processed_at",
+		userID)
+	if err != nil {
+		return withdrawals, fmt.Errorf("query error of get withdrawals:%w", err)
+	}
+
+	for rows.Next() {
+		var w ports.Withdraw
+		err = rows.Scan(
+			&w.Order,
+			&w.Sum,
+			&w.ProcessedAt,
+		)
+		if err != nil {
+			return withdrawals, fmt.Errorf("scan error of get withdrawals:%w", err)
+		}
+		withdrawals = append(withdrawals, w)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return withdrawals, fmt.Errorf("error of get withdrawals:%w", err)
+	}
+
+	return withdrawals, nil
+}
+
 func (d *db) Close() {
 	d.pool.Close()
 }
