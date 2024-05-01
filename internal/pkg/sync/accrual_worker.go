@@ -2,6 +2,7 @@ package accrual
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -41,14 +42,20 @@ func (w *worker) Run(ctx context.Context) error {
 			log.Printf("Accrual worker closed with cause:%s", ctx.Err())
 			return nil
 		case orderID = <-w.order:
-			log.Printf("Get order %d from channel", orderID)
+			log.Printf("Got order %d from channel", orderID)
 
 			order := strconv.FormatInt(orderID, 10)
 
 			apiAccrual, err := w.client.Get(ctx, order)
+			if errors.Is(err, ports.ErrOrderNotRegistered) {
+				log.Printf("For orderId:%v, order not registered", orderID)
+				continue
+			}
 			if err != nil {
 				return fmt.Errorf("client error of get accrual for order:%w", err)
 			}
+
+			log.Printf("For orderID:%v, apiAccrual:%+v", orderID, apiAccrual)
 
 			orderID, err := strconv.ParseInt(apiAccrual.Order, 10, 64)
 			if err != nil {
@@ -61,7 +68,7 @@ func (w *worker) Run(ctx context.Context) error {
 				Accrual: apiAccrual.Accrual,
 			}
 
-			log.Printf("For order %v, accrual:%v", orderID, accrual)
+			log.Printf("For orderID:%v, accrual:%v", orderID, accrual)
 
 			w.accrual <- accrual
 		}

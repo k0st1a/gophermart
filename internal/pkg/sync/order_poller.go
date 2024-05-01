@@ -38,7 +38,7 @@ func (p *poller) Run(ctx context.Context) error {
 			return nil
 		case <-ticker.C:
 			tick++
-			log.Printf("Tick %d of order polling", tick)
+			log.Printf("Got tick %d of order polling", tick)
 			//По хорошему нужна лучашая логика получения не обработанных заказов.
 			//Например, вычитывать по одному с учетом последнего полученного.
 			//но, т.к. времени мало, то делаем самый "топорный" вариант -

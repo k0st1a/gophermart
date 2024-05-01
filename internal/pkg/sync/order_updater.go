@@ -31,7 +31,7 @@ func (u *updater) Run(ctx context.Context) error {
 			log.Printf("Order updater closed with cause:%s", ctx.Err())
 			return nil
 		case accrual = <-u.accrual:
-			log.Printf("Get accrual %+v from channel", accrual)
+			log.Printf("Got accrual %+v from channel", accrual)
 
 			err := u.updateOrder(ctx, accrual.Order, accrual.Status, accrual.Accrual)
 			if err != nil {
