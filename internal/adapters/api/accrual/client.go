@@ -35,10 +35,12 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 		return nil, ports.ErrBlocked
 	}
 
-	url, err := url.JoinPath("http://", c.address, "/api/orders/", order)
+	url, err := url.JoinPath(c.address, "/api/orders/", order)
 	if err != nil {
 		return nil, fmt.Errorf("url error of join path:%w", err)
 	}
+
+	log.Printf("For order:%s, url:%s", order, url)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -55,15 +57,19 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 
 	switch resp.StatusCode {
 	case http.StatusOK:
+		log.Printf("For order:%s, StatusOK", order)
+
 		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("io error of read body:%w", err)
 		}
+		log.Printf("For order:%s, data:%s", order, string(data))
 
 		accrual, err := Deserialize(data)
 		if err != nil {
 			return nil, err
 		}
+		log.Printf("For order:%s, accrual:%v", order, accrual)
 
 		return &ports.Accrual{
 			Order:   accrual.Order,
@@ -72,13 +78,16 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 		}, nil
 
 	case http.StatusNoContent:
+		log.Printf("For order:%s, StatusNoContent", order)
 		return nil, ports.ErrOrderNotRegistered
 
 	case http.StatusTooManyRequests:
-		log.Printf("Too many requests")
+		log.Printf("For order:%s, too many requests", order)
 
 		retryHeader := resp.Header.Get("Retry-After")
+		log.Printf("For order:%s, retryHeader:%v", order, retryHeader)
 		retryAfter, err := strconv.Atoi(retryHeader)
+		log.Printf("For order:%s, retryAfter:%v", order, retryAfter)
 		if err != nil {
 			return nil, ports.ErrTooManyRequests
 		}
