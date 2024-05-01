@@ -260,6 +260,7 @@ func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("createWithdraw, data:%s", string(data))
 
 	w, err := models.DeserializeWithdraw(data)
 	if err != nil {
@@ -267,6 +268,7 @@ func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	log.Printf("createWithdraw, withdraw:%+v", w)
 
 	err = goluhn.Validate(w.Order)
 	if err != nil {
