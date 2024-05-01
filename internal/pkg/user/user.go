@@ -11,7 +11,7 @@ import (
 type Managment interface {
 	Create(ctx context.Context, login, password string) (int64, error)
 	GetIDAndPassword(ctx context.Context, login string) (int64, string, error)
-	GetBalanceAndWithdrawn(ctx context.Context, userID int64) (float64, float64, error)
+	GetBalance(ctx context.Context, userID int64) (float64, float64, error)
 }
 
 type user struct {
@@ -55,8 +55,8 @@ func (u *user) GetIDAndPassword(ctx context.Context, login string) (int64, strin
 	return id, password, nil
 }
 
-func (u *user) GetBalanceAndWithdrawn(ctx context.Context, userID int64) (float64, float64, error) {
-	current, withdrawn, err := u.storage.GetBalanceAndWithdrawn(ctx, userID)
+func (u *user) GetBalance(ctx context.Context, userID int64) (float64, float64, error) {
+	current, withdrawn, err := u.storage.GetBalance(ctx, userID)
 	if err != nil {
 		return 0, 0, fmt.Errorf("storage error of get balance:%w", err)
 	}
