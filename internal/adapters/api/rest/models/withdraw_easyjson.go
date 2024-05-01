@@ -36,6 +36,10 @@ func easyjson4f4a6fc6DecodeGithubComK0st1aGophermartInternalAdaptersApiRestModel
 			continue
 		}
 		switch key {
+		case "order":
+			out.Order = string(in.String())
+		case "sum":
+			out.Sum = float64(in.Float64())
 		default:
 			in.SkipRecursive()
 		}
@@ -50,6 +54,16 @@ func easyjson4f4a6fc6EncodeGithubComK0st1aGophermartInternalAdaptersApiRestModel
 	out.RawByte('{')
 	first := true
 	_ = first
+	{
+		const prefix string = ",\"order\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Order))
+	}
+	{
+		const prefix string = ",\"sum\":"
+		out.RawString(prefix)
+		out.Float64(float64(in.Sum))
+	}
 	out.RawByte('}')
 }
 
