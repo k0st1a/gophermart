@@ -41,7 +41,7 @@ func (w *withdraw) Create(ctx context.Context, userID, orderID int64, sum float6
 		_ = w.storage.Commit(ctx, tx)
 	}()
 
-	balance, withdraw, err := w.storage.GetBalanceWithBlock(ctx, tx, userID)
+	balance, withdraw, err := w.storage.GetBalanceAndWithdrawnWithBlock(ctx, tx, userID)
 	if err != nil {
 		_ = w.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of get balance:%w", err)
@@ -52,7 +52,7 @@ func (w *withdraw) Create(ctx context.Context, userID, orderID int64, sum float6
 		return ErrNotEnoughFunds
 	}
 
-	err = w.storage.UpdateBalance(ctx, tx, userID, balance-sum, withdraw+sum)
+	err = w.storage.UpdateBalanceAndWithdrawn(ctx, tx, userID, balance-sum, withdraw+sum)
 	if err != nil {
 		_ = w.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of update balance:%w", err)

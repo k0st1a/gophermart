@@ -69,8 +69,8 @@ func (d *db) GetUserIDAndPassword(ctx context.Context, login string) (int64, str
 	return id, password, nil
 }
 
-func (d *db) GetBalance(ctx context.Context, userID int64) (float64, float64, error) {
-	log.Printf("GetBalance, userID:%v", userID)
+func (d *db) GetBalanceAndWithdrawn(ctx context.Context, userID int64) (float64, float64, error) {
+	log.Printf("GetBalanceAndWithdrawn, userID:%v", userID)
 	var (
 		balance   float64
 		withdrawn float64
@@ -79,14 +79,14 @@ func (d *db) GetBalance(ctx context.Context, userID int64) (float64, float64, er
 	err := d.pool.QueryRow(ctx,
 		"SELECT balance, withdrawn FROM users WHERE id = $1", userID).Scan(&balance, &withdrawn)
 	if err != nil {
-		return 0, 0, fmt.Errorf("query error of get balance:%w", err)
+		return 0, 0, fmt.Errorf("query error of get balance and withdrawn:%w", err)
 	}
 
 	return balance, withdrawn, nil
 }
 
-func (d *db) GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, float64, error) {
-	log.Printf("GetBalanceWithBlock, userID:%v", userID)
+func (d *db) GetBalanceAndWithdrawnWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, float64, error) {
+	log.Printf("GetBalanceAndWithdrawnWithBlock, userID:%v", userID)
 	var (
 		balance   float64
 		withdrawn float64
@@ -95,18 +95,44 @@ func (d *db) GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (
 	err := tx.QueryRow(ctx,
 		"SELECT balance, withdrawn FROM users WHERE id = $1 FOR UPDATE", userID).Scan(&balance, &withdrawn)
 	if err != nil {
-		return 0, 0, fmt.Errorf("query error of get balance with block:%w", err)
+		return 0, 0, fmt.Errorf("query error of get balance and withdrawn with block:%w", err)
 	}
 
 	return balance, withdrawn, nil
 }
 
-func (d *db) UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance, withdrawn float64) error {
+func (d *db) GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, error) {
+	log.Printf("GetBalanceWithBlock, userID:%v", userID)
+	var balance float64
+
+	err := tx.QueryRow(ctx,
+		"SELECT balance FROM users WHERE id = $1 FOR UPDATE", userID).Scan(&balance)
+	if err != nil {
+		return 0, fmt.Errorf("query error of get balance with block:%w", err)
+	}
+
+	return balance, nil
+}
+
+func (d *db) UpdateBalanceAndWithdrawn(ctx context.Context, tx pgx.Tx, userID int64, balance, withdrawn float64) error {
 	var id int64
 
 	err := tx.QueryRow(ctx,
-		"UPDATE ONLY users SET balance = $1, withdrawn = $2 WHERE id = $4 RETURNING id",
+		"UPDATE ONLY users SET balance = $1, withdrawn = $2 WHERE id = $3 RETURNING id",
 		balance, withdrawn, userID).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("query error of update balance and withdrawn:%w", err)
+	}
+
+	return nil
+}
+
+func (d *db) UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance float64) error {
+	var id int64
+
+	err := tx.QueryRow(ctx,
+		"UPDATE ONLY users SET balance = $1, WHERE id = $2 RETURNING id",
+		balance, userID).Scan(&id)
 	if err != nil {
 		return fmt.Errorf("query error of update balance:%w", err)
 	}
@@ -114,11 +140,27 @@ func (d *db) UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance
 	return nil
 }
 
-func (d *db) GetOrderUserID(ctx context.Context, orderID int64) (int64, error) {
-	log.Printf("GetOrderUserID, orderID:%v", orderID)
+func (d *db) GetUserIDByOrder(ctx context.Context, orderID int64) (int64, error) {
+	log.Printf("GetUserIDByOrder, orderID:%v", orderID)
 	var userID int64
 
 	err := d.pool.QueryRow(ctx, "SELECT user_id FROM orders WHERE id = $1", orderID).Scan(&userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ports.ErrOrderNotFound
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("query error of get user id by order id:%w", err)
+	}
+
+	return userID, nil
+}
+
+func (d *db) GetUserIDByOrderWithBlock(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error) {
+	log.Printf("GetUserIDByOrderWithBlock, orderID:%v", orderID)
+	var userID int64
+
+	err := tx.QueryRow(ctx, "SELECT user_id FROM orders WHERE id = $1 FOR UPDATE", orderID).Scan(&userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, ports.ErrOrderNotFound
 	}
@@ -141,6 +183,20 @@ func (d *db) CreateOrder(ctx context.Context, userID, orderID int64) error {
 	}
 
 	log.Printf("Created order, id:%v", id)
+	return nil
+}
+
+func (d *db) UpdateOrder(ctx context.Context, tx pgx.Tx, orderID int64, status string, accrual float64) error {
+	log.Printf("UpdateOrder, orderID:%v, status:%v, accrual:%v", orderID, status, accrual)
+	var id int64
+
+	err := tx.QueryRow(ctx, "UPDATE ONLY orders SET accrual = $1, status = $2 WHERE id = $3 RETURNING id",
+		accrual, status, orderID).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("query error of update order:%w", err)
+	}
+
+	log.Printf("Updated order, id:%v", id)
 	return nil
 }
 
@@ -175,6 +231,31 @@ func (d *db) GetOrders(ctx context.Context, userID int64) ([]ports.Order, error)
 	}
 
 	return orders, nil
+}
+
+func (d *db) GetNotProcessedOrders(ctx context.Context) ([]int64, error) {
+	var orderIDList []int64
+
+	rows, err := d.pool.Query(ctx, "SELECT id FROM orders WHERE status in ('PROCESSING', 'NEW')")
+	if err != nil {
+		return orderIDList, fmt.Errorf("query error of get not processed orders:%w", err)
+	}
+
+	for rows.Next() {
+		var orderID int64
+		err = rows.Scan(&orderID)
+		if err != nil {
+			return orderIDList, fmt.Errorf("scan error of get not processed order:%w", err)
+		}
+		orderIDList = append(orderIDList, orderID)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return orderIDList, fmt.Errorf("error of get not processed orders:%w", err)
+	}
+
+	return orderIDList, nil
 }
 
 func (d *db) CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int64, sum float64) error {

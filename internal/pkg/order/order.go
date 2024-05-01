@@ -37,7 +37,7 @@ func New(storage ports.OrderStorage) Managment {
 }
 
 func (o *order) Create(ctx context.Context, userID, orderID int64) error {
-	dbUserID, err := o.storage.GetOrderUserID(ctx, orderID)
+	dbUserID, err := o.storage.GetUserIDByOrder(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, ports.ErrOrderNotFound) {
 			err = o.storage.CreateOrder(ctx, userID, orderID)
