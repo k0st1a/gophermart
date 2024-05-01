@@ -48,6 +48,8 @@ func (p *poller) Run(ctx context.Context) error {
 				return fmt.Errorf("storage error of get not processed orders:%w", err)
 			}
 
+			log.Printf("For tick %d orders:%v", tick, orders)
+
 			for _, orderID := range orders {
 				p.order <- orderID
 			}

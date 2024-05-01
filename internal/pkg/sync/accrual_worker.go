@@ -61,6 +61,8 @@ func (w *worker) Run(ctx context.Context) error {
 				Accrual: apiAccrual.Accrual,
 			}
 
+			log.Printf("For order %v, accrual:%v", orderID, accrual)
+
 			w.accrual <- accrual
 		}
 	}
