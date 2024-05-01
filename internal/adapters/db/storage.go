@@ -69,6 +69,22 @@ func (d *db) GetUserIDAndPassword(ctx context.Context, login string) (int64, str
 	return id, password, nil
 }
 
+func (d *db) GetBalanceAndWithdrawn(ctx context.Context, userID int64) (float64, float64, error) {
+	log.Printf("GetBalanceAndWithdrawn, userID:%v", userID)
+	var (
+		balance   float64
+		withdrawn float64
+	)
+
+	err := d.pool.QueryRow(ctx,
+		"SELECT balance, withdrawn FROM users WHERE id = $1", userID).Scan(&balance, &withdrawn)
+	if err != nil {
+		return 0, 0, fmt.Errorf("query error of get balance and withdrawn:%w", err)
+	}
+
+	return balance, withdrawn, nil
+}
+
 func (d *db) GetOrderUserID(ctx context.Context, orderID int64) (int64, error) {
 	log.Printf("GetOrderUserID, orderID:%v", orderID)
 	var userID int64

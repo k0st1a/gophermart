@@ -209,6 +209,39 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) getBalance(rw http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	current, withdrawn, err := h.user.GetBalanceAndWithdrawn(r.Context(), userID)
+	if err != nil {
+		log.Error().Err(err).Msg("error of get balance")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("current:%v, Withdrawn:%v", current, withdrawn)
+
+	data, err := models.SerializeBalance(&models.Balance{
+		Current:   current,
+		Withdrawn: withdrawn,
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("error of serialize balance")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	_, err = rw.Write(data)
+	if err != nil {
+		log.Error().Err(err).Msg("error of write balance")
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
