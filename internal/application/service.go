@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/k0st1a/gophermart/internal/adapters/api/accrual"
 	"github.com/k0st1a/gophermart/internal/adapters/api/rest"
 	"github.com/k0st1a/gophermart/internal/adapters/db"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
+	job "github.com/k0st1a/gophermart/internal/pkg/sync"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/k0st1a/gophermart/internal/pkg/withdraw"
 	"github.com/rs/zerolog/log"
@@ -36,6 +38,16 @@ func Run() error {
 
 	h := rest.NewHandler(auth, user, order, withdraw)
 	r := rest.BuildRoute(h, auth)
+
+	a := accrual.New(cfg.AccrualSystemAddress)
+
+	op, orderCh := job.NewOrderPoller(1, db)
+	aw, accrualCh := job.NewAccrualWorker(a, orderCh)
+	ou := job.NewOrderUpdater(db, accrualCh)
+
+	go op.Run(ctx)
+	go aw.Run(ctx)
+	go ou.Run(ctx)
 
 	server := rest.New(ctx, cfg.RunAddress, r)
 	err = server.Run()

@@ -56,9 +56,9 @@ func (u *user) GetIDAndPassword(ctx context.Context, login string) (int64, strin
 }
 
 func (u *user) GetBalance(ctx context.Context, userID int64) (float64, float64, error) {
-	current, withdrawn, err := u.storage.GetBalance(ctx, userID)
+	current, withdrawn, err := u.storage.GetBalanceAndWithdrawn(ctx, userID)
 	if err != nil {
-		return 0, 0, fmt.Errorf("storage error of get balance:%w", err)
+		return 0, 0, fmt.Errorf("storage error of get balance and withdrawn:%w", err)
 	}
 
 	return current, withdrawn, nil
