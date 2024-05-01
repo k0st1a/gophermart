@@ -41,8 +41,15 @@ type WithdrawStorage interface {
 	CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int64, sum float64) error
 	GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, float64, error)
 	UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance, withdrawn float64) error
+	GetWithdrawals(ctx context.Context, userID int64) ([]Withdraw, error)
 
 	BeginTx(ctx context.Context) (pgx.Tx, error)
 	Rollback(ctx context.Context, tx pgx.Tx) error
 	Commit(ctx context.Context, tx pgx.Tx) error
+}
+
+type Withdraw struct {
+	Order       int64
+	Sum         float64
+	ProcessedAt time.Time
 }

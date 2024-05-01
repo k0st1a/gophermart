@@ -4,12 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/k0st1a/gophermart/internal/ports"
 )
 
 type Managment interface {
 	Create(ctx context.Context, userID, orderID int64, sum float64) error
+	List(ctx context.Context, userID int64) ([]Withdraw, error)
+}
+
+type Withdraw struct {
+	Order       int64
+	Sum         float64
+	ProcessedAt time.Time
 }
 
 var ErrNotEnoughFunds = errors.New("not enough funds in balance")
@@ -57,4 +65,26 @@ func (w *withdraw) Create(ctx context.Context, userID, orderID int64, sum float6
 	}
 
 	return nil
+}
+
+func (w *withdraw) List(ctx context.Context, userID int64) ([]Withdraw, error) {
+	var withdrawals []Withdraw
+	dbWithdrawals, err := w.storage.GetWithdrawals(ctx, userID)
+	if err != nil {
+		return withdrawals, fmt.Errorf("storage error of get withdrawals:%w", err)
+	}
+	for _, dbWithdraw := range dbWithdrawals {
+		processedAt, err := time.Parse(time.RFC3339, dbWithdraw.ProcessedAt.Format(time.RFC3339))
+		if err != nil {
+			return withdrawals, fmt.Errorf("error of parse ProcessedAt to RFC3339:%w", err)
+		}
+
+		withdrawals = append(withdrawals, Withdraw{
+			Order:       dbWithdraw.Order,
+			Sum:         dbWithdraw.Sum,
+			ProcessedAt: processedAt,
+		})
+	}
+
+	return withdrawals, nil
 }

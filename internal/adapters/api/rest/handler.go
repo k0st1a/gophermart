@@ -183,16 +183,16 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 
 	log.Printf("orders:%+v", orders)
 
+	if len(orders) == 0 {
+		rw.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	var modelOrders models.Orders
 	for _, o := range orders {
 		modelOrders = append(modelOrders, models.Order(o))
 	}
 	log.Printf("modelOrders:%+v", modelOrders)
-
-	if len(orders) == 0 {
-		rw.WriteHeader(http.StatusNoContent)
-		return
-	}
 
 	data, err := models.SerializeOrders(&modelOrders)
 	if err != nil {
@@ -297,4 +297,45 @@ func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) getWithdrawals(rw http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	withdrawals, err := h.withdraw.List(r.Context(), userID)
+	if err != nil {
+		log.Error().Err(err).Msg("error of get withdrawals")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("withdrawals:%+v", withdrawals)
+
+	if len(withdrawals) == 0 {
+		rw.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	var modelWithdrawals models.Withdrawals
+	for _, w := range withdrawals {
+		modelWithdrawals = append(modelWithdrawals, models.WithdrawOut(w))
+	}
+	log.Printf("modelWithdrawals:%+v", modelWithdrawals)
+
+	data, err := models.SerializeWithdrawals(&modelWithdrawals)
+	if err != nil {
+		log.Error().Err(err).Msg("error of serialize withdrawals")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	_, err = rw.Write(data)
+	if err != nil {
+		log.Error().Err(err).Msg("error of write withdrawals")
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 }
