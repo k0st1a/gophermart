@@ -37,10 +37,10 @@ func Run() error {
 	h := rest.NewHandler(auth, user, order, withdraw)
 	r := rest.BuildRoute(h, auth)
 
-	api := rest.NewAPI(ctx, cfg.RunAddress, r)
-	err = api.Run()
+	server := rest.New(ctx, cfg.RunAddress, r)
+	err = server.Run()
 	if err != nil {
-		return fmt.Errorf("failed to run api:%w", err)
+		return fmt.Errorf("failed to run server:%w", err)
 	}
 
 	return nil
