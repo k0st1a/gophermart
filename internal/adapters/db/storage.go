@@ -278,6 +278,7 @@ func (d *db) CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int6
 }
 
 func (d *db) GetWithdrawals(ctx context.Context, userID int64) ([]ports.Withdraw, error) {
+	log.Printf("GetWithdrawals, userID:%v", userID)
 	var withdrawals []ports.Withdraw
 
 	rows, err := d.pool.Query(ctx,

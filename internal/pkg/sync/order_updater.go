@@ -42,6 +42,8 @@ func (u *updater) Run(ctx context.Context) error {
 }
 
 func (u *updater) updateOrder(ctx context.Context, orderID int64, status string, accrual float64) error {
+	log.Printf("updateOrder, orderID:%v, status:%v, accrual:%v", orderID, status, accrual)
+
 	tx, err := u.storage.BeginTx(ctx)
 	if err != nil {
 		return fmt.Errorf("storage error of begin transition:%w", err)
@@ -52,12 +54,14 @@ func (u *updater) updateOrder(ctx context.Context, orderID int64, status string,
 		_ = u.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of get user id by order:%w", err)
 	}
+	log.Printf("For orderID:%v, userID:%v", orderID, userID)
 
 	balance, err := u.storage.GetBalanceWithBlock(ctx, tx, userID)
 	if err != nil {
 		_ = u.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of get balance with block:%w", err)
 	}
+	log.Printf("For userID:%v, balance:%v", orderID, balance)
 
 	err = u.storage.UpdateOrder(ctx, tx, orderID, status, accrual)
 	if err != nil {
@@ -66,6 +70,7 @@ func (u *updater) updateOrder(ctx context.Context, orderID int64, status string,
 	}
 
 	if accrual != 0 {
+		log.Printf("accrual not 0 => update balance, userID:%v, new balance:%v", userID, balance+accrual)
 		err = u.storage.UpdateBalance(ctx, tx, userID, balance+accrual)
 		if err != nil {
 			_ = u.storage.Rollback(ctx, tx)
