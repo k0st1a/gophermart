@@ -261,13 +261,7 @@ func (d *db) GetNotProcessedOrders(ctx context.Context) ([]int64, error) {
 func (d *db) CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int64, sum float64) error {
 	var id int64
 
-	const query = `
-		INSERT INTO "withdraw" (order_id, user_id, sum)
-		VALUES ($1, $2, $3)
-		RETURNING  "withdraw".id;
-	`
-
-	err := tx.QueryRow(ctx, "INSERT INTO withdraw (order_id, user_id, sum) VALUES ($1, $2, $3) RETURNING id",
+	err := tx.QueryRow(ctx, "INSERT INTO withdrawals (order_id, user_id, sum) VALUES ($1, $2, $3) RETURNING id",
 		orderID, userID, sum).Scan(&id)
 	if err != nil {
 		return fmt.Errorf("query error of create withdraw:%w", err)
