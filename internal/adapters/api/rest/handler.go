@@ -11,20 +11,23 @@ import (
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
+	"github.com/k0st1a/gophermart/internal/pkg/withdraw"
 	"github.com/rs/zerolog/log"
 )
 
 type handler struct {
-	auth  auth.UserAuthentication
-	user  user.Managment
-	order order.Managment
+	auth     auth.UserAuthentication
+	user     user.Managment
+	order    order.Managment
+	withdraw withdraw.Managment
 }
 
-func NewHandler(auth auth.UserAuthentication, user user.Managment, order order.Managment) *handler {
+func NewHandler(a auth.UserAuthentication, u user.Managment, o order.Managment, w withdraw.Managment) *handler {
 	return &handler{
-		auth:  auth,
-		user:  user,
-		order: order,
+		auth:     a,
+		user:     u,
+		order:    o,
+		withdraw: w,
 	}
 }
 
@@ -215,7 +218,7 @@ func (h *handler) getBalance(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	current, withdrawn, err := h.user.GetBalanceAndWithdrawn(r.Context(), userID)
+	current, withdrawn, err := h.user.GetBalance(r.Context(), userID)
 	if err != nil {
 		log.Error().Err(err).Msg("error of get balance")
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -245,6 +248,52 @@ func (h *handler) getBalance(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
+	userID, err := getUserID(r.Context())
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Error().Err(err).Msg("body read error")
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w, err := models.DeserializeWithdraw(data)
+	if err != nil {
+		log.Error().Err(err).Msg("withdraw deserialize error")
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = goluhn.Validate(w.Order)
+	if err != nil {
+		http.Error(rw, "invalid order number format", http.StatusUnprocessableEntity)
+		return
+	}
+
+	orderID, err := strconv.ParseInt(w.Order, 10, 64)
+	if err != nil {
+		log.Error().Err(err).Msg("order number parsing error")
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = h.withdraw.Create(r.Context(), userID, orderID, w.Sum)
+	if err != nil {
+		if errors.Is(err, withdraw.ErrNotEnoughFunds) {
+			rw.WriteHeader(http.StatusPaymentRequired)
+			return
+		}
+
+		log.Error().Err(err).Msg("error of create withdraw")
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) getWithdrawals(rw http.ResponseWriter, r *http.Request) {

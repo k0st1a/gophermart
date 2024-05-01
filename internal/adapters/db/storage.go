@@ -69,8 +69,8 @@ func (d *db) GetUserIDAndPassword(ctx context.Context, login string) (int64, str
 	return id, password, nil
 }
 
-func (d *db) GetBalanceAndWithdrawn(ctx context.Context, userID int64) (float64, float64, error) {
-	log.Printf("GetBalanceAndWithdrawn, userID:%v", userID)
+func (d *db) GetBalance(ctx context.Context, userID int64) (float64, float64, error) {
+	log.Printf("GetBalance, userID:%v", userID)
 	var (
 		balance   float64
 		withdrawn float64
@@ -79,10 +79,39 @@ func (d *db) GetBalanceAndWithdrawn(ctx context.Context, userID int64) (float64,
 	err := d.pool.QueryRow(ctx,
 		"SELECT balance, withdrawn FROM users WHERE id = $1", userID).Scan(&balance, &withdrawn)
 	if err != nil {
-		return 0, 0, fmt.Errorf("query error of get balance and withdrawn:%w", err)
+		return 0, 0, fmt.Errorf("query error of get balance:%w", err)
 	}
 
 	return balance, withdrawn, nil
+}
+
+func (d *db) GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, float64, error) {
+	log.Printf("GetBalanceWithBlock, userID:%v", userID)
+	var (
+		balance   float64
+		withdrawn float64
+	)
+
+	err := tx.QueryRow(ctx,
+		"SELECT balance, withdrawn FROM users WHERE id = $1 FOR UPDATE", userID).Scan(&balance, &withdrawn)
+	if err != nil {
+		return 0, 0, fmt.Errorf("query error of get balance with block:%w", err)
+	}
+
+	return balance, withdrawn, nil
+}
+
+func (d *db) UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance, withdrawn float64) error {
+	var id int64
+
+	err := tx.QueryRow(ctx,
+		"UPDATE ONLY users SET balance = $1, withdrawn = $2 WHERE id = $4 RETURNING id",
+		balance, withdrawn, userID).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("query error of update balance:%w", err)
+	}
+
+	return nil
 }
 
 func (d *db) GetOrderUserID(ctx context.Context, orderID int64) (int64, error) {
@@ -92,6 +121,10 @@ func (d *db) GetOrderUserID(ctx context.Context, orderID int64) (int64, error) {
 	err := d.pool.QueryRow(ctx, "SELECT user_id FROM orders WHERE id = $1", orderID).Scan(&userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return 0, ports.ErrOrderNotFound
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("query error of get user id by order id:%w", err)
 	}
 
 	return userID, nil
@@ -142,6 +175,25 @@ func (d *db) GetOrders(ctx context.Context, userID int64) ([]ports.Order, error)
 	}
 
 	return orders, nil
+}
+
+func (d *db) CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int64, sum float64) error {
+	var id int64
+
+	const query = `
+		INSERT INTO "withdraw" (order_id, user_id, sum)
+		VALUES ($1, $2, $3)
+		RETURNING  "withdraw".id;
+	`
+
+	err := tx.QueryRow(ctx, "INSERT INTO withdraw (order_id, user_id, sum) VALUES ($1, $2, $3) RETURNING id",
+		orderID, userID, sum).Scan(&id)
+	if err != nil {
+		return fmt.Errorf("query error of create withdraw:%w", err)
+	}
+
+	log.Printf("Created withdraw, id:%v", id)
+	return nil
 }
 
 func (d *db) Close() {
