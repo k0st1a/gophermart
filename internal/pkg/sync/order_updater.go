@@ -2,8 +2,10 @@ package accrual
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/k0st1a/gophermart/internal/ports"
 	"github.com/rs/zerolog/log"
 )
@@ -48,9 +50,20 @@ func (u *updater) updateOrder(ctx context.Context, orderID int64, status string,
 	if err != nil {
 		return fmt.Errorf("storage error of begin transition:%w", err)
 	}
+	defer func() {
+		err := u.storage.Commit(ctx, tx)
+		if errors.Is(err, pgx.ErrTxClosed) {
+			log.Printf("transaction closed for update order, orderID:%v", orderID)
+			return
+		}
+		if err != nil {
+			log.Error().Err(err).Msg("storage error of commit transaction")
+		}
+	}()
 
 	userID, err := u.storage.GetUserIDByOrderWithBlock(ctx, tx, orderID)
 	if err != nil {
+		log.Error().Err(err).Msg("storage error of get user id by order")
 		_ = u.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of get user id by order:%w", err)
 	}
@@ -58,6 +71,7 @@ func (u *updater) updateOrder(ctx context.Context, orderID int64, status string,
 
 	balance, err := u.storage.GetBalanceWithBlock(ctx, tx, userID)
 	if err != nil {
+		log.Error().Err(err).Msg("storage error of get balance with block")
 		_ = u.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of get balance with block:%w", err)
 	}
@@ -65,6 +79,7 @@ func (u *updater) updateOrder(ctx context.Context, orderID int64, status string,
 
 	err = u.storage.UpdateOrder(ctx, tx, orderID, status, accrual)
 	if err != nil {
+		log.Error().Err(err).Msg("storage error of update order")
 		_ = u.storage.Rollback(ctx, tx)
 		return fmt.Errorf("storage error of update order:%w", err)
 	}
@@ -73,14 +88,10 @@ func (u *updater) updateOrder(ctx context.Context, orderID int64, status string,
 		log.Printf("accrual not 0 => update balance, userID:%v, new balance:%v", userID, balance+accrual)
 		err = u.storage.UpdateBalance(ctx, tx, userID, balance+accrual)
 		if err != nil {
+			log.Error().Err(err).Msg("storage error of update balance")
 			_ = u.storage.Rollback(ctx, tx)
 			return fmt.Errorf("storage error of update balance:%w", err)
 		}
-	}
-
-	err = u.storage.Commit(ctx, tx)
-	if err != nil {
-		return fmt.Errorf("storage error of commit transaction:%w", err)
 	}
 
 	return nil

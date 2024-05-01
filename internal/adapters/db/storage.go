@@ -131,7 +131,7 @@ func (d *db) UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance
 	var id int64
 
 	err := tx.QueryRow(ctx,
-		"UPDATE ONLY users SET balance = $1, WHERE id = $2 RETURNING id",
+		"UPDATE ONLY users SET balance = $1 WHERE id = $2 RETURNING id",
 		balance, userID).Scan(&id)
 	if err != nil {
 		return fmt.Errorf("query error of update balance:%w", err)

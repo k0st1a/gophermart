@@ -45,9 +45,24 @@ func Run() error {
 	aw, accrualCh := job.NewAccrualWorker(a, orderCh)
 	ou := job.NewOrderUpdater(db, accrualCh)
 
-	go op.Run(ctx)
-	go aw.Run(ctx)
-	go ou.Run(ctx)
+	go func() {
+		err := op.Run(ctx)
+		if err != nil {
+			log.Error().Err(err).Msg("error of run order poller")
+		}
+	}()
+	go func() {
+		err := aw.Run(ctx)
+		if err != nil {
+			log.Error().Err(err).Msg("error of run accrual worker")
+		}
+	}()
+	go func() {
+		err := ou.Run(ctx)
+		if err != nil {
+			log.Error().Err(err).Msg("error of run order updater")
+		}
+	}()
 
 	server := rest.New(ctx, cfg.RunAddress, r)
 	err = server.Run()
