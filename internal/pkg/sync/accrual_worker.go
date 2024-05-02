@@ -70,7 +70,12 @@ func (w *worker) Run(ctx context.Context) error {
 
 			log.Printf("For orderID:%v, accrual:%v", orderID, accrual)
 
-			w.accrual <- accrual
+			select {
+			case w.accrual <- accrual:
+			case <-ctx.Done():
+				log.Printf("Accrual worker closed with cause:%s", ctx.Err())
+				return nil
+			}
 		}
 	}
 }
