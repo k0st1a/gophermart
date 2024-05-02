@@ -2,7 +2,6 @@ package accrual
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/k0st1a/gophermart/internal/ports"
@@ -45,7 +44,8 @@ func (p *poller) Run(ctx context.Context) error {
 			//вычитываем все за раз.
 			orders, err := p.storage.GetNotProcessedOrders(ctx)
 			if err != nil {
-				return fmt.Errorf("storage error of get not processed orders:%w", err)
+				log.Error().Err(err).Msg("storage error of get not processed orders")
+				continue
 			}
 
 			log.Printf("For tick %d orders:%v", tick, orders)

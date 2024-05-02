@@ -37,7 +37,8 @@ func (u *updater) Run(ctx context.Context) error {
 
 			err := u.updateOrder(ctx, accrual.Order, accrual.Status, accrual.Accrual)
 			if err != nil {
-				return fmt.Errorf("storage error of update order:%w", err)
+				log.Error().Err(err).Msg("storage error of update order")
+				continue
 			}
 		}
 	}
