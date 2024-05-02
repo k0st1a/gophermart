@@ -2,7 +2,11 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
 
 	"github.com/k0st1a/gophermart/internal/adapters/api/accrual"
 	"github.com/k0st1a/gophermart/internal/adapters/api/rest"
@@ -17,7 +21,8 @@ import (
 
 func Run() error {
 	log.Printf("Running application")
-	ctx := context.Background()
+	ctx, cancelCtx := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancelCtx()
 
 	cfg, err := collectConfig()
 	if err != nil {
@@ -39,6 +44,19 @@ func Run() error {
 
 	h := rest.NewHandler(auth, user, order, withdraw)
 	r := rest.BuildRoute(h, auth)
+
+	server := rest.New(ctx, cfg.RunAddress, r)
+
+	go func() {
+		err := server.Run()
+		if errors.Is(err, http.ErrServerClosed) {
+			log.Printf("rest server closed")
+			return
+		}
+		if err != nil {
+			log.Error().Err(err).Msg("failed to run server")
+		}
+	}()
 
 	a := accrual.New(cfg.AccrualSystemAddress)
 
@@ -65,11 +83,8 @@ func Run() error {
 		}
 	}()
 
-	server := rest.New(ctx, cfg.RunAddress, r)
-	err = server.Run()
-	if err != nil {
-		return fmt.Errorf("failed to run server:%w", err)
-	}
+	<-ctx.Done()
+	server.Shutdown(context.Background())
 
 	return nil
 }
