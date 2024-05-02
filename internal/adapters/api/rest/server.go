@@ -35,3 +35,7 @@ func (s *server) Run() error {
 
 	return nil
 }
+
+func (s *server) Shutdown(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
+}
