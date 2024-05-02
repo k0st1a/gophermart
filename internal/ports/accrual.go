@@ -11,7 +11,7 @@ var (
 	ErrBlocked            = errors.New("blocked")
 )
 
-type Getter interface {
+type AccrualGetter interface {
 	Get(ctx context.Context, order string) (*Accrual, error)
 }
 

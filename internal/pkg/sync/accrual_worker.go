@@ -17,12 +17,12 @@ type Accrual struct {
 }
 
 type worker struct {
-	client  ports.Getter
+	client  ports.AccrualGetter
 	accrual chan Accrual
 	order   <-chan int64
 }
 
-func NewAccrualWorker(client ports.Getter, order <-chan int64) (*worker, <-chan Accrual) {
+func NewAccrualWorker(client ports.AccrualGetter, order <-chan int64) (*worker, <-chan Accrual) {
 	accrual := make(chan Accrual)
 	return &worker{
 		client:  client,

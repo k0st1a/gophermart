@@ -21,7 +21,7 @@ type client struct {
 	client  *http.Client
 }
 
-func New(address string) ports.Getter {
+func New(address string) ports.AccrualGetter {
 	return &client{
 		address: address,
 		client:  &http.Client{},
