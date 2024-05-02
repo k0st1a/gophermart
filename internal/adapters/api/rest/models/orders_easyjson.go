@@ -102,16 +102,16 @@ func easyjson9d6b4be7DecodeGithubComK0st1aGophermartInternalAdaptersApiRestModel
 			continue
 		}
 		switch key {
-		case "number":
-			out.Number = int64(in.Int64Str())
-		case "status":
-			out.Status = string(in.String())
-		case "accrual":
-			out.Accrual = float64(in.Float64())
 		case "uploaded_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.UploadedAt).UnmarshalJSON(data))
 			}
+		case "status":
+			out.Status = string(in.String())
+		case "number":
+			out.Number = int64(in.Int64Str())
+		case "accrual":
+			out.Accrual = float64(in.Float64())
 		default:
 			in.SkipRecursive()
 		}
@@ -127,24 +127,24 @@ func easyjson9d6b4be7EncodeGithubComK0st1aGophermartInternalAdaptersApiRestModel
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"number\":"
+		const prefix string = ",\"uploaded_at\":"
 		out.RawString(prefix[1:])
-		out.Int64Str(int64(in.Number))
+		out.Raw((in.UploadedAt).MarshalJSON())
 	}
 	{
 		const prefix string = ",\"status\":"
 		out.RawString(prefix)
 		out.String(string(in.Status))
 	}
+	{
+		const prefix string = ",\"number\":"
+		out.RawString(prefix)
+		out.Int64Str(int64(in.Number))
+	}
 	if in.Accrual != 0 {
 		const prefix string = ",\"accrual\":"
 		out.RawString(prefix)
 		out.Float64(float64(in.Accrual))
-	}
-	{
-		const prefix string = ",\"uploaded_at\":"
-		out.RawString(prefix)
-		out.Raw((in.UploadedAt).MarshalJSON())
 	}
 	out.RawByte('}')
 }
