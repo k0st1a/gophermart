@@ -9,10 +9,10 @@ import (
 
 //easyjson:json
 type Order struct {
-	Number     int64     `json:"number,string"`
-	Status     string    `json:"status"`
-	Accrual    float64   `json:"accrual,omitempty"`
 	UploadedAt time.Time `json:"uploaded_at"`
+	Status     string    `json:"status"`
+	Number     int64     `json:"number,string"`
+	Accrual    float64   `json:"accrual,omitempty"`
 }
 
 //easyjson:json

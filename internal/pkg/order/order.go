@@ -15,10 +15,10 @@ type Managment interface {
 }
 
 type Order struct {
-	Number     int64
-	Status     string
-	Accrual    float64
 	UploadedAt time.Time
+	Status     string
+	Number     int64
+	Accrual    float64
 }
 
 var (
