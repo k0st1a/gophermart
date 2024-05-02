@@ -3,7 +3,6 @@ package accrual
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/k0st1a/gophermart/internal/ports"
@@ -52,14 +51,16 @@ func (w *worker) Run(ctx context.Context) error {
 				continue
 			}
 			if err != nil {
-				return fmt.Errorf("client error of get accrual for order:%w", err)
+				log.Error().Err(err).Msg("client error of get accrual for order")
+				continue
 			}
 
 			log.Printf("For orderID:%v, apiAccrual:%+v", orderID, apiAccrual)
 
 			orderID, err := strconv.ParseInt(apiAccrual.Order, 10, 64)
 			if err != nil {
-				return fmt.Errorf("strconv error of parse accrual order:%w", err)
+				log.Error().Err(err).Msg("strconv error of parse accrual order")
+				continue
 			}
 
 			accrual := Accrual{
