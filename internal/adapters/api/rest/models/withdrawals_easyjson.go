@@ -102,14 +102,14 @@ func easyjsonA27c2e9aDecodeGithubComK0st1aGophermartInternalAdaptersApiRestModel
 			continue
 		}
 		switch key {
-		case "order":
-			out.Order = int64(in.Int64Str())
-		case "sum":
-			out.Sum = float64(in.Float64())
 		case "processed_at":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.ProcessedAt).UnmarshalJSON(data))
 			}
+		case "order":
+			out.Order = int64(in.Int64Str())
+		case "sum":
+			out.Sum = float64(in.Float64())
 		default:
 			in.SkipRecursive()
 		}
@@ -125,19 +125,19 @@ func easyjsonA27c2e9aEncodeGithubComK0st1aGophermartInternalAdaptersApiRestModel
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"order\":"
+		const prefix string = ",\"processed_at\":"
 		out.RawString(prefix[1:])
+		out.Raw((in.ProcessedAt).MarshalJSON())
+	}
+	{
+		const prefix string = ",\"order\":"
+		out.RawString(prefix)
 		out.Int64Str(int64(in.Order))
 	}
 	{
 		const prefix string = ",\"sum\":"
 		out.RawString(prefix)
 		out.Float64(float64(in.Sum))
-	}
-	{
-		const prefix string = ",\"processed_at\":"
-		out.RawString(prefix)
-		out.Raw((in.ProcessedAt).MarshalJSON())
 	}
 	out.RawByte('}')
 }

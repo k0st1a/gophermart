@@ -9,9 +9,9 @@ import (
 
 //easyjson:json
 type WithdrawOut struct {
+	ProcessedAt time.Time `json:"processed_at"`
 	Order       int64     `json:"order,string"`
 	Sum         float64   `json:"sum"`
-	ProcessedAt time.Time `json:"processed_at"`
 }
 
 //easyjson:json
