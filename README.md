@@ -8,11 +8,11 @@
 
 # Спецификация
 
-Спецификация проекта находится в файле [SPECIFICATION.md](https://github.com/k0st1a/gophermart/blob/master/SPECIFICATION.md)
+Спецификация проекта находится в файле [SPECIFICATION.md](SPECIFICATION.md)
 
 # TODO
 
-TODO лист находится в файле [TODO.md](https://github.com/k0st1a/gophermart/blob/master/TODO.md)
+TODO лист находится в файле [TODO.md](TODO.md)
 
 # Обновление автотестов
 
