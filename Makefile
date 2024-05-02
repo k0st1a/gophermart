@@ -26,7 +26,7 @@ statictest:
 
 .PHONY:test
 test: build statictest
-	go test -v ./...
+	go test -v -race ./...
 
 .PHONY:gophermart-run-with-args
 gophermart-run-with-args: build 
