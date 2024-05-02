@@ -51,7 +51,13 @@ func (p *poller) Run(ctx context.Context) error {
 			log.Printf("For tick %d orders:%v", tick, orders)
 
 			for _, orderID := range orders {
-				p.order <- orderID
+				select {
+				case p.order <- orderID:
+				case <-ctx.Done():
+					log.Printf("Order poller closed with cause:%s", ctx.Err())
+					ticker.Stop()
+					return nil
+				}
 			}
 		}
 	}
