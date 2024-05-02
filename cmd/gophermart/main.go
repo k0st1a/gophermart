@@ -6,8 +6,6 @@ import (
 )
 
 func main() {
-	log.Logger = log.With().Caller().Logger()
-	log.Printf("Running gophermart")
 	err := application.Run()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
