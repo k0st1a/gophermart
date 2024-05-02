@@ -30,6 +30,7 @@ func Run() error {
 	if err != nil {
 		return fmt.Errorf("failed to create db:%w", err)
 	}
+	defer db.Close()
 
 	auth := auth.New(cfg.SecretKey)
 	user := user.New(db)
