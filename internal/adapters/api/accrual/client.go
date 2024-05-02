@@ -17,8 +17,8 @@ import (
 var isBlocked atomic.Bool
 
 type client struct {
-	address string
 	client  *http.Client
+	address string
 }
 
 func New(address string) ports.AccrualGetter {
