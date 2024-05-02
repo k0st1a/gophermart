@@ -84,5 +84,6 @@ func (a *auth) GeneratePasswordHash(password string) (string, error) {
 }
 
 func (a *auth) CheckPasswordHash(password, hash string) error {
+	//nolint // Не за чем оборачивать ошибку
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
