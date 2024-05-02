@@ -10,6 +10,10 @@
 
 Спецификация проекта находится в файле [SPECIFICATION.md](https://github.com/k0st1a/gophermart/blob/master/SPECIFICATION.md)
 
+# TODO
+
+TODO лист находится в файле [TODO.md](https://github.com/k0st1a/gophermart/blob/master/TODO.md)
+
 # Обновление автотестов
 
 Чтобы иметь возможность получать обновления автотестов и других частей шаблона, выполните команду:
