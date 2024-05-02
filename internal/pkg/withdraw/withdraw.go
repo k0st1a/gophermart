@@ -16,9 +16,9 @@ type Managment interface {
 }
 
 type Withdraw struct {
+	ProcessedAt time.Time
 	Order       int64
 	Sum         float64
-	ProcessedAt time.Time
 }
 
 var ErrNotEnoughFunds = errors.New("not enough funds in balance")
