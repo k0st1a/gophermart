@@ -1,5 +1,5 @@
 # Что хотеться добавить:
-- [] golangci-lint
+- [x] golangci-lint
 - [] unit тесты
 - [] e2e тесты
 - [] умный order poller
