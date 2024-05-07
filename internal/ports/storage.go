@@ -49,9 +49,9 @@ type WithdrawStorage interface {
 }
 
 type Withdraw struct {
+	ProcessedAt time.Time
 	Order       int64
 	Sum         float64
-	ProcessedAt time.Time
 }
 
 type OrderPollerStorage interface {
