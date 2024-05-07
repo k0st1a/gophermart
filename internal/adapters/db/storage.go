@@ -233,6 +233,18 @@ func (d *db) GetOrders(ctx context.Context, userID int64) ([]ports.Order, error)
 	return orders, nil
 }
 
+func (d *db) GetNotProcessedOrderWithBlock(ctx context.Context, tx pgx.Tx) (int64, error) {
+	var orderID int64
+
+	err := tx.QueryRow(ctx, "SELECT id FROM orders WHERE status in ('PROCESSING', 'NEW') "+
+		"LIMIT 1 FOR UPDATE").Scan(&orderID)
+	if err != nil {
+		return 0, fmt.Errorf("query error of get not processed order with block, error:%w", err)
+	}
+
+	return orderID, nil
+}
+
 func (d *db) GetNotProcessedOrders(ctx context.Context) ([]int64, error) {
 	var orderIDList []int64
 
