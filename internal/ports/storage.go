@@ -31,10 +31,10 @@ var (
 )
 
 type Order struct {
-	Number     int64
 	Status     string
-	Accrual    sql.NullFloat64
 	UploadedAt time.Time
+	Accrual    sql.NullFloat64
+	Number     int64
 }
 
 type WithdrawStorage interface {
