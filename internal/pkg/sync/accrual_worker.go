@@ -10,8 +10,8 @@ import (
 )
 
 type Accrual struct {
-	Order   int64
 	Status  string
+	Order   int64
 	Accrual float64
 }
 
