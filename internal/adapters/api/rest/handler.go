@@ -167,6 +167,7 @@ func (h *handler) createOrder(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusAccepted)
 }
 
+//nolint:dupl //similar to getWithdrawals
 func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 	userID, err := getUserID(r.Context())
 	if err != nil {
@@ -298,6 +299,7 @@ func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 }
 
+//nolint:dupl //similar to getOrders
 func (h *handler) getWithdrawals(rw http.ResponseWriter, r *http.Request) {
 	userID, err := getUserID(r.Context())
 	if err != nil {
