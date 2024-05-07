@@ -11,10 +11,12 @@ import (
 func TestConfigFromEnv(t *testing.T) {
 	origStateFun := func() {
 		func(args []string) {
+			//nolint:reassign //for tests only
 			os.Args = args
 		}(os.Args)
 
 		func(cl *flag.FlagSet) {
+			//nolint:reassign //for tests only
 			flag.CommandLine = cl
 		}(flag.CommandLine)
 	}
@@ -43,6 +45,7 @@ func TestConfigFromEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			//nolint:reassign //for tests only
 			flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 			for k, v := range test.env {
@@ -60,10 +63,12 @@ func TestConfigFromEnv(t *testing.T) {
 func TestConfigFromFlags(t *testing.T) {
 	origStateFun := func() {
 		func(args []string) {
+			//nolint:reassign //for tests only
 			os.Args = args
 		}(os.Args)
 
 		func(cl *flag.FlagSet) {
+			//nolint:reassign //for tests only
 			flag.CommandLine = cl
 		}(flag.CommandLine)
 	}
@@ -93,8 +98,10 @@ func TestConfigFromFlags(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			//nolint:reassign //for tests only
 			flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
+			//nolint:reassign //for tests only
 			os.Args = test.args
 
 			cfg := newConfig()
@@ -109,10 +116,12 @@ func TestConfigFromFlags(t *testing.T) {
 func TestConfig(t *testing.T) {
 	origStateFun := func() {
 		func(args []string) {
+			//nolint:reassign //for tests only
 			os.Args = args
 		}(os.Args)
 
 		func(cl *flag.FlagSet) {
+			//nolint:reassign //for tests only
 			flag.CommandLine = cl
 		}(flag.CommandLine)
 	}
@@ -148,11 +157,13 @@ func TestConfig(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			//nolint:reassign //for tests only
 			flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
 
 			for k, v := range test.env {
 				t.Setenv(k, v)
 			}
+			//nolint:reassign //for tests only
 			os.Args = test.args
 
 			cfg, err := collectConfig()
