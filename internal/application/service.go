@@ -84,7 +84,10 @@ func Run() error {
 	}()
 
 	<-ctx.Done()
-	server.Shutdown(context.Background())
+	err = server.Shutdown(context.Background())
+	if err != nil {
+		log.Error().Err(err).Msg("error of shutdown server")
+	}
 
 	return nil
 }

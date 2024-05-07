@@ -37,5 +37,6 @@ func (s *server) Run() error {
 }
 
 func (s *server) Shutdown(ctx context.Context) error {
+	//nolint:wrapcheck //no need here
 	return s.server.Shutdown(ctx)
 }
