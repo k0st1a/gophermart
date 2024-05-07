@@ -59,7 +59,7 @@ func (o *order) Create(ctx context.Context, userID, orderID int64) error {
 }
 
 func (o *order) List(ctx context.Context, userID int64) ([]Order, error) {
-	var orders []Order
+	orders := []Order{}
 
 	dbOrders, err := o.storage.GetOrders(ctx, userID)
 	if err != nil {
