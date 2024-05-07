@@ -30,6 +30,7 @@ var (
 	ErrOrderNotFound = errors.New("order not found")
 )
 
+//nolint:govet //incorrectly detects alignment
 type Order struct {
 	Status     string
 	UploadedAt time.Time
