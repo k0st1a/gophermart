@@ -74,7 +74,7 @@ func (w *withdraw) Create(ctx context.Context, userID, orderID int64, sum float6
 
 func (w *withdraw) List(ctx context.Context, userID int64) ([]Withdraw, error) {
 	log.Printf("Get list of withdrawals, userID:%v", userID)
-	var withdrawals []Withdraw
+	withdrawals := []Withdraw{}
 	dbWithdrawals, err := w.storage.GetWithdrawals(ctx, userID)
 	if err != nil {
 		return withdrawals, fmt.Errorf("storage error of get withdrawals:%w", err)
