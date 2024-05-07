@@ -55,6 +55,18 @@ type Withdraw struct {
 	Sum         float64
 }
 
+type NotProcessedOrderStorage interface {
+	GetNotProcessedOrderWithBlock(ctx context.Context, tx pgx.Tx) (int64, error)
+	GetUserIDByOrderWithBlock(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error)
+	GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, error)
+	UpdateOrder(ctx context.Context, tx pgx.Tx, orderID int64, status string, accrual float64) error
+	UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance float64) error
+
+	BeginTx(ctx context.Context) (pgx.Tx, error)
+	Rollback(ctx context.Context, tx pgx.Tx) error
+	Commit(ctx context.Context, tx pgx.Tx) error
+}
+
 type OrderPollerStorage interface {
 	GetNotProcessedOrders(ctx context.Context) ([]int64, error)
 }
