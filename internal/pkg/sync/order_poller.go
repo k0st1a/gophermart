@@ -10,8 +10,8 @@ import (
 
 type poller struct {
 	storage  ports.OrderPollerStorage
-	interval int
 	order    chan<- int64
+	interval int
 }
 
 func NewOrderPoller(interval int, storage ports.OrderPollerStorage) (*poller, <-chan int64) {
@@ -38,10 +38,10 @@ func (p *poller) Run(ctx context.Context) error {
 		case <-ticker.C:
 			tick++
 			log.Printf("Got tick %d of order polling", tick)
-			//По хорошему нужна лучашая логика получения не обработанных заказов.
-			//Например, вычитывать по одному с учетом последнего полученного.
-			//но, т.к. времени мало, то делаем самый "топорный" вариант -
-			//вычитываем все за раз.
+			// По хорошему нужна лучашая логика получения не обработанных заказов.
+			// Например, вычитывать по одному с учетом последнего полученного.
+			// но, т.к. времени мало, то делаем самый "топорный" вариант -
+			// вычитываем все за раз.
 			orders, err := p.storage.GetNotProcessedOrders(ctx)
 			if err != nil {
 				log.Error().Err(err).Msg("storage error of get not processed orders")
