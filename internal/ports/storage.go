@@ -55,7 +55,7 @@ type Withdraw struct {
 	Sum         float64
 }
 
-type NotProcessedOrderStorage interface {
+type UpdateOrderStorage interface {
 	GetNotProcessedOrderWithBlock(ctx context.Context, tx pgx.Tx) (int64, error)
 	GetUserIDByOrderWithBlock(ctx context.Context, tx pgx.Tx, orderID int64) (int64, error)
 	GetBalanceWithBlock(ctx context.Context, tx pgx.Tx, userID int64) (float64, error)

@@ -10,12 +10,12 @@ import (
 )
 
 type tick struct {
-	orderStorage   ports.NotProcessedOrderStorage
+	orderStorage   ports.UpdateOrderStorage
 	accrualAddress string
 	pollInterval   int
 }
 
-func NewTicker(address string, interval int, storage ports.NotProcessedOrderStorage) *tick {
+func NewTicker(address string, interval int, storage ports.UpdateOrderStorage) *tick {
 	return &tick{
 		accrualAddress: address,
 		pollInterval:   interval,
