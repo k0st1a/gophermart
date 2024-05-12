@@ -245,31 +245,6 @@ func (d *db) GetNotProcessedOrderWithBlock(ctx context.Context, tx pgx.Tx) (int6
 	return orderID, nil
 }
 
-func (d *db) GetNotProcessedOrders(ctx context.Context) ([]int64, error) {
-	var orderIDList []int64
-
-	rows, err := d.pool.Query(ctx, "SELECT id FROM orders WHERE status in ('PROCESSING', 'NEW')")
-	if err != nil {
-		return orderIDList, fmt.Errorf("query error of get not processed orders:%w", err)
-	}
-
-	for rows.Next() {
-		var orderID int64
-		err = rows.Scan(&orderID)
-		if err != nil {
-			return orderIDList, fmt.Errorf("scan error of get not processed order:%w", err)
-		}
-		orderIDList = append(orderIDList, orderID)
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return orderIDList, fmt.Errorf("error of get not processed orders:%w", err)
-	}
-
-	return orderIDList, nil
-}
-
 func (d *db) CreateWithdraw(ctx context.Context, tx pgx.Tx, userID, orderID int64, sum float64) error {
 	var id int64
 
