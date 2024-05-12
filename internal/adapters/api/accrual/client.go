@@ -7,31 +7,30 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"sync/atomic"
 	"time"
 
 	"github.com/k0st1a/gophermart/internal/ports"
 	"github.com/rs/zerolog/log"
 )
 
-var isBlocked atomic.Bool
-
 type client struct {
 	client  *http.Client
+	block   Blocker
 	address string
 }
 
-func New(address string) ports.AccrualGetter {
+func New(address string, block Blocker) ports.AccrualGetter {
 	return &client{
 		address: address,
 		client:  &http.Client{},
+		block:   block,
 	}
 }
 
 func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) {
 	log.Printf("Get accrual for order with number:%s", order)
 
-	if isBlocked.Load() {
+	if c.block.IsActive() {
 		return nil, ports.ErrBlocked
 	}
 
@@ -92,18 +91,10 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 			return nil, ports.ErrTooManyRequests
 		}
 
-		go block(time.Duration(retryAfter) * time.Second)
+		go c.block.Activate(time.Duration(retryAfter) * time.Second)
 
 		return nil, ports.ErrTooManyRequests
 	}
 
 	return nil, fmt.Errorf("unknown response status code:%v", resp.StatusCode)
-}
-
-func block(wait time.Duration) {
-	isBlocked.Store(true)
-	log.Printf("block clients for %s seconds while too many requests", wait)
-	time.Sleep(wait)
-	isBlocked.Store(false)
-	log.Printf("unblock clients after %s seconds", wait)
 }

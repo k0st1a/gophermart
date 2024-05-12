@@ -29,6 +29,8 @@ func (t *tick) Run(ctx context.Context) error {
 
 	tick := 0
 
+	block := accrual.NewBlock()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -38,7 +40,7 @@ func (t *tick) Run(ctx context.Context) error {
 		case <-ticker.C:
 			tick++
 			log.Printf("Got tick %d", tick)
-			a := accrual.New(t.accrualAddress)
+			a := accrual.New(t.accrualAddress, block)
 			j := NewJob(tick, t.orderStorage, a)
 			err := j.Run(ctx)
 			if err != nil {
