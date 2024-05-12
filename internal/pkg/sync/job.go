@@ -11,12 +11,12 @@ import (
 )
 
 type job struct {
-	storage ports.NotProcessedOrderStorage
+	storage ports.UpdateOrderStorage
 	client  ports.AccrualGetter
 	number  int
 }
 
-func NewJob(number int, storage ports.NotProcessedOrderStorage, accrual ports.AccrualGetter) *job {
+func NewJob(number int, storage ports.UpdateOrderStorage, accrual ports.AccrualGetter) *job {
 	return &job{
 		number:  number,
 		storage: storage,
