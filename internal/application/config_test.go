@@ -45,15 +45,11 @@ func TestConfigFromEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			//nolint:reassign //for tests only
-			flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-
 			for k, v := range test.env {
 				t.Setenv(k, v)
 			}
 
-			cfg := newConfig()
-			err := parseEnv(cfg)
+			cfg, err := NewConfig()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
 		})
@@ -104,8 +100,7 @@ func TestConfigFromFlags(t *testing.T) {
 			//nolint:reassign //for tests only
 			os.Args = test.args
 
-			cfg := newConfig()
-			err := parseFlags(cfg)
+			cfg, err := NewConfig()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
 			origStateFun()
@@ -166,7 +161,7 @@ func TestConfig(t *testing.T) {
 			//nolint:reassign //for tests only
 			os.Args = test.args
 
-			cfg, err := collectConfig()
+			cfg, err := NewConfig()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
 			origStateFun()

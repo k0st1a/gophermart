@@ -23,7 +23,7 @@ func Run() error {
 	ctx, cancelCtx := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancelCtx()
 
-	cfg, err := collectConfig()
+	cfg, err := NewConfig()
 	if err != nil {
 		return err
 	}
