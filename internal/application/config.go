@@ -3,59 +3,38 @@ package application
 import (
 	"flag"
 	"fmt"
+	"os"
 
-	"github.com/caarlos0/env/v10"
 	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
-	RunAddress           string `env:"RUN_ADDRESS"`
-	DatabaseURI          string `env:"DATABASE_URI"`
-	AccrualSystemAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	RunAddress           string
+	DatabaseURI          string
+	AccrualSystemAddress string
 	SecretKey            string
 }
 
-const (
-	defaultRunAddress           = ""
-	defaultDatabaseURI          = ""
-	defaultAccrualSystemAddress = ""
-	defaultSecretKey            = "defaultSecretKey"
-)
-
-func collectConfig() (*Config, error) {
-	cfg := newConfig()
-
-	err := parseEnv(cfg)
-	if err != nil {
-		return nil, err
+func NewConfig() (*Config, error) {
+	cfg := Config{
+		SecretKey: "defaultSecretKey",
 	}
 
-	err = parseFlags(cfg)
-	if err != nil {
-		return nil, err
+	ra, ok := os.LookupEnv("RUN_ADDRESS")
+	if ok {
+		cfg.RunAddress = ra
 	}
 
-	return cfg, nil
-}
-
-func newConfig() *Config {
-	return &Config{
-		RunAddress:           defaultRunAddress,
-		DatabaseURI:          defaultDatabaseURI,
-		AccrualSystemAddress: defaultAccrualSystemAddress,
-		SecretKey:            defaultSecretKey,
+	duri, ok := os.LookupEnv("DATABASE_URI")
+	if ok {
+		cfg.DatabaseURI = duri
 	}
-}
 
-func parseEnv(cfg *Config) error {
-	err := env.Parse(cfg)
-	if err != nil {
-		return fmt.Errorf("env parse error:%w", err)
+	asa, ok := os.LookupEnv("ACCRUAL_SYSTEM_ADDRESS")
+	if ok {
+		cfg.AccrualSystemAddress = asa
 	}
-	return nil
-}
 
-func parseFlags(cfg *Config) error {
 	flag.StringVar(&cfg.RunAddress, "a", cfg.RunAddress,
 		"адрес и порт запуска сервиса: переменная окружения ОС RUN_ADDRESS или флаг -a")
 	flag.StringVar(&cfg.DatabaseURI, "d", cfg.DatabaseURI,
@@ -66,10 +45,10 @@ func parseFlags(cfg *Config) error {
 	flag.Parse()
 
 	if len(flag.Args()) != 0 {
-		return fmt.Errorf("unknown flags")
+		return nil, fmt.Errorf("unknown flags")
 	}
 
-	return nil
+	return &cfg, nil
 }
 
 func printConfig(cfg *Config) {
