@@ -12,8 +12,8 @@ import (
 	"github.com/k0st1a/gophermart/internal/adapters/db"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/cfg"
+	"github.com/k0st1a/gophermart/internal/pkg/cron"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
-	"github.com/k0st1a/gophermart/internal/pkg/sync"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
 	"github.com/k0st1a/gophermart/internal/pkg/withdraw"
 	"github.com/rs/zerolog/log"
@@ -58,7 +58,8 @@ func Run() error {
 		}
 	}()
 
-	t := sync.NewTicker(cfg.AccrualSystemAddress, 1, db)
+	t := cron.NewTicker(cfg.AccrualSystemAddress, 1, db)
+	wg.Add(1)
 	go func() {
 		err := t.Run(ctx)
 		if err != nil {
