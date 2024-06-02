@@ -54,8 +54,7 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 		_ = resp.Body.Close()
 	}()
 
-	switch resp.StatusCode {
-	case http.StatusOK:
+	if resp.StatusCode == http.StatusOK {
 		log.Printf("For order:%s, StatusOK", order)
 
 		data, err := io.ReadAll(resp.Body)
@@ -75,12 +74,14 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 			Status:  accrual.Status,
 			Accrual: accrual.Accrual,
 		}, nil
+	}
 
-	case http.StatusNoContent:
+	if resp.StatusCode == http.StatusNoContent {
 		log.Printf("For order:%s, StatusNoContent", order)
 		return nil, ports.ErrOrderNotRegistered
+	}
 
-	case http.StatusTooManyRequests:
+	if resp.StatusCode == http.StatusTooManyRequests {
 		log.Printf("For order:%s, too many requests", order)
 
 		retryHeader := resp.Header.Get("Retry-After")
