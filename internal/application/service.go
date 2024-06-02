@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/k0st1a/gophermart/internal/adapters/api/rest"
 	"github.com/k0st1a/gophermart/internal/adapters/db"
@@ -59,8 +60,10 @@ func Run() error {
 	}()
 
 	t := cron.NewTicker(cfg.AccrualSystemAddress, 1, db)
+	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		err := t.Run(ctx)
 		if err != nil {
 			log.Error().Err(err).Msg("error of run ticker")
@@ -68,6 +71,8 @@ func Run() error {
 	}()
 
 	<-ctx.Done()
+	wg.Wait()
+
 	err = server.Shutdown(context.Background())
 	if err != nil {
 		log.Error().Err(err).Msg("error of shutdown server")
