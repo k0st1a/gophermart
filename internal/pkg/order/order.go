@@ -30,7 +30,7 @@ type order struct {
 	storage ports.OrderStorage
 }
 
-func New(storage ports.OrderStorage) Managment {
+func New(storage ports.OrderStorage) *order {
 	return &order{
 		storage: storage,
 	}
@@ -40,12 +40,7 @@ func (o *order) Create(ctx context.Context, userID, orderID int64) error {
 	dbUserID, err := o.storage.GetUserIDByOrder(ctx, orderID)
 	if err != nil {
 		if errors.Is(err, ports.ErrOrderNotFound) {
-			err = o.storage.CreateOrder(ctx, userID, orderID)
-			if err != nil {
-				return fmt.Errorf("failed to create order:%w", err)
-			}
-
-			return nil
+			return o.create(ctx, userID, orderID)
 		}
 
 		return fmt.Errorf("error of get order:%w", err)
@@ -56,6 +51,15 @@ func (o *order) Create(ctx context.Context, userID, orderID int64) error {
 	}
 
 	return ErrAlreadyUploadedByThisUser
+}
+
+func (o *order) create(ctx context.Context, userID, orderID int64) error {
+	err := o.storage.CreateOrder(ctx, userID, orderID)
+	if err != nil {
+		return fmt.Errorf("failed to create order:%w", err)
+	}
+
+	return nil
 }
 
 func (o *order) List(ctx context.Context, userID int64) ([]Order, error) {
