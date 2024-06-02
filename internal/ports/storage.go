@@ -45,8 +45,6 @@ type WithdrawStorage interface {
 	GetWithdrawals(ctx context.Context, userID int64) ([]Withdraw, error)
 
 	BeginTx(ctx context.Context) (pgx.Tx, error)
-	Rollback(ctx context.Context, tx pgx.Tx) error
-	Commit(ctx context.Context, tx pgx.Tx) error
 }
 
 type Withdraw struct {
@@ -63,6 +61,4 @@ type UpdateOrderStorage interface {
 	UpdateBalance(ctx context.Context, tx pgx.Tx, userID int64, balance float64) error
 
 	BeginTx(ctx context.Context) (pgx.Tx, error)
-	Rollback(ctx context.Context, tx pgx.Tx) error
-	Commit(ctx context.Context, tx pgx.Tx) error
 }

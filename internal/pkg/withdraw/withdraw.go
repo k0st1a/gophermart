@@ -41,31 +41,31 @@ func (w *withdraw) Create(ctx context.Context, userID, orderID int64, sum float6
 		return fmt.Errorf("storage error of begin transaction:%w", err)
 	}
 	defer func() {
-		_ = w.storage.Commit(ctx, tx)
+		_ = tx.Commit(ctx)
 	}()
 
 	balance, withdraw, err := w.storage.GetBalanceAndWithdrawnWithBlock(ctx, tx, userID)
 	if err != nil {
-		_ = w.storage.Rollback(ctx, tx)
+		_ = tx.Rollback(ctx)
 		return fmt.Errorf("storage error of get balance:%w", err)
 	}
 	log.Printf("For userID:%v, balance:%v, withdraw:%v", userID, balance, withdraw)
 
 	if balance < sum {
 		log.Printf("For userID:%v, not enough balance", userID)
-		_ = w.storage.Rollback(ctx, tx)
+		_ = tx.Rollback(ctx)
 		return ErrNotEnoughFunds
 	}
 
 	err = w.storage.UpdateBalanceAndWithdrawn(ctx, tx, userID, balance-sum, withdraw+sum)
 	if err != nil {
-		_ = w.storage.Rollback(ctx, tx)
+		_ = tx.Rollback(ctx)
 		return fmt.Errorf("storage error of update balance:%w", err)
 	}
 
 	err = w.storage.CreateWithdraw(ctx, tx, userID, orderID, sum)
 	if err != nil {
-		_ = w.storage.Rollback(ctx, tx)
+		_ = tx.Rollback(ctx)
 		return fmt.Errorf("storage error of create withdraw:%w", err)
 	}
 

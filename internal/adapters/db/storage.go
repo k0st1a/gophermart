@@ -31,6 +31,15 @@ func NewDB(ctx context.Context, dsn string) (*db, error) {
 	}, nil
 }
 
+func (d *db) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction error:%w", err)
+	}
+
+	return tx, nil
+}
+
 func (d *db) CreateUser(ctx context.Context, login, password string) (int64, error) {
 	log.Printf("CreateUser, login:%s, password:%s", login, password)
 	var id int64
