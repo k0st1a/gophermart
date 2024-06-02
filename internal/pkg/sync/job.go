@@ -33,7 +33,7 @@ func (j *job) Run(ctx context.Context) error {
 		return fmt.Errorf("storage error of begin transaction, error:%w", err)
 	}
 	defer func() {
-		_ = j.storage.Rollback(ctx, tx)
+		_ = tx.Rollback(ctx)
 	}()
 
 	orderID, err := j.storage.GetNotProcessedOrderWithBlock(ctx, tx)
@@ -67,7 +67,7 @@ func (j *job) getAccrual(ctx context.Context, tx pgx.Tx, orderID int64) (*ports.
 			return nil, fmt.Errorf("storage error of update INVALID order, error:%w", err)
 		}
 
-		err = j.storage.Commit(ctx, tx)
+		err = tx.Commit(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("storage error of commit transaction, error:%w", err)
 		}
@@ -89,7 +89,7 @@ func (j *job) getAccrual(ctx context.Context, tx pgx.Tx, orderID int64) (*ports.
 			return nil, fmt.Errorf("storage error of update INVALID order, error:%w", err)
 		}
 
-		err = j.storage.Commit(ctx, tx)
+		err = tx.Commit(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("storage error of commit transaction, error:%w", err)
 		}
@@ -130,7 +130,7 @@ func (j *job) updateBalance(ctx context.Context, tx pgx.Tx, orderID int64, ar *p
 		}
 	}
 
-	err = j.storage.Commit(ctx, tx)
+	err = tx.Commit(ctx)
 	if err != nil {
 		return fmt.Errorf("storage error of commit transaction, error:%w", err)
 	}
