@@ -38,7 +38,7 @@ func (w *withdraw) Create(ctx context.Context, userID, orderID int64, sum float6
 
 	tx, err := w.storage.BeginTx(ctx)
 	if err != nil {
-		return fmt.Errorf("storage error of begin transition:%w", err)
+		return fmt.Errorf("storage error of begin transaction:%w", err)
 	}
 	defer func() {
 		_ = w.storage.Commit(ctx, tx)
