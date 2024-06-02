@@ -42,7 +42,7 @@ func Run() error {
 	withdraw := withdraw.New(db)
 
 	h := rest.NewHandler(auth, user, order, withdraw)
-	r := rest.BuildRoute(h, auth)
+	r := rest.BuildRouter(h, auth)
 
 	server := rest.New(ctx, cfg.RunAddress, r)
 

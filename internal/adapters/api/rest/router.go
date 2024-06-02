@@ -6,7 +6,7 @@ import (
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 )
 
-func BuildRoute(h *handler, a auth.UserAuthentication) *chi.Mux {
+func BuildRouter(h *handler, a auth.UserAuthentication) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
