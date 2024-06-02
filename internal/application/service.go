@@ -26,7 +26,7 @@ func Run() error {
 
 	cfg, err := cfg.New()
 	if err != nil {
-		return err
+		return fmt.Errorf("config error:%w", err)
 	}
 
 	cfg.Print()

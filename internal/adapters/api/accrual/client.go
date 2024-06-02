@@ -94,7 +94,7 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 		var accrual Accrual
 		err = json.Unmarshal(data, &accrual)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("unmarshal error:%w", err)
 		}
 		log.Printf("For order:%s, accrual:%v", order, accrual)
 
