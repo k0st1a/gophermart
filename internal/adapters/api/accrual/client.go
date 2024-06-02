@@ -54,6 +54,27 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 		_ = resp.Body.Close()
 	}()
 
+	if resp.StatusCode == http.StatusNoContent {
+		log.Printf("For order:%s, StatusNoContent", order)
+		return nil, ports.ErrOrderNotRegistered
+	}
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		log.Printf("For order:%s, too many requests", order)
+
+		retryHeader := resp.Header.Get("Retry-After")
+		log.Printf("For order:%s, retryHeader:%v", order, retryHeader)
+		retryAfter, err := strconv.Atoi(retryHeader)
+		log.Printf("For order:%s, retryAfter:%v", order, retryAfter)
+		if err != nil {
+			return nil, ports.ErrTooManyRequests
+		}
+
+		go c.block.Activate(time.Duration(retryAfter) * time.Second)
+
+		return nil, ports.ErrTooManyRequests
+	}
+
 	if resp.StatusCode == http.StatusOK {
 		log.Printf("For order:%s, StatusOK", order)
 
@@ -74,27 +95,6 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 			Status:  accrual.Status,
 			Accrual: accrual.Accrual,
 		}, nil
-	}
-
-	if resp.StatusCode == http.StatusNoContent {
-		log.Printf("For order:%s, StatusNoContent", order)
-		return nil, ports.ErrOrderNotRegistered
-	}
-
-	if resp.StatusCode == http.StatusTooManyRequests {
-		log.Printf("For order:%s, too many requests", order)
-
-		retryHeader := resp.Header.Get("Retry-After")
-		log.Printf("For order:%s, retryHeader:%v", order, retryHeader)
-		retryAfter, err := strconv.Atoi(retryHeader)
-		log.Printf("For order:%s, retryAfter:%v", order, retryAfter)
-		if err != nil {
-			return nil, ports.ErrTooManyRequests
-		}
-
-		go c.block.Activate(time.Duration(retryAfter) * time.Second)
-
-		return nil, ports.ErrTooManyRequests
 	}
 
 	return nil, fmt.Errorf("unknown response status code:%v", resp.StatusCode)
