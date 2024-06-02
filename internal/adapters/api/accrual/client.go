@@ -19,7 +19,7 @@ type client struct {
 	address string
 }
 
-func New(address string, block Blocker) ports.AccrualGetter {
+func NewClient(address string, block Blocker) *client {
 	return &client{
 		address: address,
 		client:  &http.Client{},

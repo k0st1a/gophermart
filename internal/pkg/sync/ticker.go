@@ -40,7 +40,7 @@ func (t *tick) Run(ctx context.Context) error {
 		case <-ticker.C:
 			tick++
 			log.Printf("Got tick %d", tick)
-			a := accrual.New(t.accrualAddress, block)
+			a := accrual.NewClient(t.accrualAddress, block)
 			j := NewJob(tick, t.orderStorage, a)
 			err := j.Run(ctx)
 			if err != nil {
