@@ -30,7 +30,7 @@ func (j *job) Run(ctx context.Context) error {
 
 	tx, err := j.storage.BeginTx(ctx)
 	if err != nil {
-		return fmt.Errorf("storage error of begin transition, error:%w", err)
+		return fmt.Errorf("storage error of begin transaction, error:%w", err)
 	}
 	defer func() {
 		_ = j.storage.Rollback(ctx, tx)
