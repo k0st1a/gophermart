@@ -2,6 +2,7 @@ package accrual
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,12 @@ import (
 	"github.com/k0st1a/gophermart/internal/ports"
 	"github.com/rs/zerolog/log"
 )
+
+type Accrual struct {
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual"`
+}
 
 type client struct {
 	client  *http.Client
@@ -84,7 +91,8 @@ func (c *client) Get(ctx context.Context, order string) (*ports.Accrual, error) 
 		}
 		log.Printf("For order:%s, data:%s", order, string(data))
 
-		accrual, err := Deserialize(data)
+		var accrual Accrual
+		err = json.Unmarshal(data, &accrual)
 		if err != nil {
 			return nil, err
 		}

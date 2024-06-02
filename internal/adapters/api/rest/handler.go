@@ -1,13 +1,13 @@
 package rest
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"strconv"
 
 	"github.com/ShiraazMoollatjie/goluhn"
-	"github.com/k0st1a/gophermart/internal/adapters/api/rest/models"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
@@ -39,7 +39,8 @@ func (h *handler) register(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ur, err := models.DeserializeRegister(data)
+	var ur Register
+	err = json.Unmarshal(data, &ur)
 	if err != nil {
 		log.Error().Err(err).Msg("user registration deserialize error")
 		rw.WriteHeader(http.StatusBadRequest)
@@ -84,7 +85,8 @@ func (h *handler) login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ul, err := models.DeserializeLogin(data)
+	var ul Login
+	err = json.Unmarshal(data, &ul)
 	if err != nil {
 		log.Error().Err(err).Msg("user login deserialize error")
 		http.Error(rw, "deserialize error", http.StatusBadRequest)
@@ -189,13 +191,13 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var modelOrders models.Orders
+	var modelOrders []Order
 	for _, o := range orders {
-		modelOrders = append(modelOrders, models.Order(o))
+		modelOrders = append(modelOrders, Order(o))
 	}
 	log.Printf("modelOrders:%+v", modelOrders)
 
-	data, err := models.SerializeOrders(&modelOrders)
+	data, err := json.Marshal(&modelOrders)
 	if err != nil {
 		log.Error().Err(err).Msg("error of serialize orders")
 		rw.WriteHeader(http.StatusInternalServerError)
@@ -228,7 +230,7 @@ func (h *handler) getBalance(rw http.ResponseWriter, r *http.Request) {
 
 	log.Printf("current:%v, Withdrawn:%v", current, withdrawn)
 
-	data, err := models.SerializeBalance(&models.Balance{
+	data, err := json.Marshal(&Balance{
 		Current:   current,
 		Withdrawn: withdrawn,
 	})
@@ -263,7 +265,8 @@ func (h *handler) createWithdraw(rw http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("createWithdraw, data:%s", string(data))
 
-	w, err := models.DeserializeWithdraw(data)
+	var w Withdraw
+	err = json.Unmarshal(data, &w)
 	if err != nil {
 		log.Error().Err(err).Msg("withdraw deserialize error")
 		rw.WriteHeader(http.StatusBadRequest)
@@ -321,13 +324,13 @@ func (h *handler) getWithdrawals(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var modelWithdrawals models.Withdrawals
+	var modelWithdrawals []WithdrawOut
 	for _, w := range withdrawals {
-		modelWithdrawals = append(modelWithdrawals, models.WithdrawOut(w))
+		modelWithdrawals = append(modelWithdrawals, WithdrawOut(w))
 	}
 	log.Printf("modelWithdrawals:%+v", modelWithdrawals)
 
-	data, err := models.SerializeWithdrawals(&modelWithdrawals)
+	data, err := json.Marshal(&modelWithdrawals)
 	if err != nil {
 		log.Error().Err(err).Msg("error of serialize withdrawals")
 		rw.WriteHeader(http.StatusInternalServerError)
