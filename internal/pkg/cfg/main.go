@@ -1,4 +1,4 @@
-package application
+package cfg
 
 import (
 	"flag"
@@ -15,7 +15,7 @@ type Config struct {
 	SecretKey            string
 }
 
-func NewConfig() (*Config, error) {
+func New() (*Config, error) {
 	cfg := Config{
 		SecretKey: "defaultSecretKey",
 	}
@@ -51,10 +51,10 @@ func NewConfig() (*Config, error) {
 	return &cfg, nil
 }
 
-func printConfig(cfg *Config) {
+func (c *Config) Print() {
 	log.Debug().
-		Str("cfg.RunAddress", cfg.RunAddress).
-		Str("cfg.DatabaseURI", cfg.DatabaseURI).
-		Str("cfg.AccrualSystemAddress", cfg.AccrualSystemAddress).
+		Str("cfg.RunAddress", c.RunAddress).
+		Str("cfg.DatabaseURI", c.DatabaseURI).
+		Str("cfg.AccrualSystemAddress", c.AccrualSystemAddress).
 		Msg("printConfig")
 }

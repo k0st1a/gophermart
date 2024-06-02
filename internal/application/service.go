@@ -11,6 +11,7 @@ import (
 	"github.com/k0st1a/gophermart/internal/adapters/api/rest"
 	"github.com/k0st1a/gophermart/internal/adapters/db"
 	"github.com/k0st1a/gophermart/internal/pkg/auth"
+	"github.com/k0st1a/gophermart/internal/pkg/cfg"
 	"github.com/k0st1a/gophermart/internal/pkg/order"
 	"github.com/k0st1a/gophermart/internal/pkg/sync"
 	"github.com/k0st1a/gophermart/internal/pkg/user"
@@ -23,12 +24,12 @@ func Run() error {
 	ctx, cancelCtx := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancelCtx()
 
-	cfg, err := NewConfig()
+	cfg, err := cfg.New()
 	if err != nil {
 		return err
 	}
 
-	printConfig(cfg)
+	cfg.Print()
 
 	db, err := db.NewDB(ctx, cfg.DatabaseURI)
 	if err != nil {

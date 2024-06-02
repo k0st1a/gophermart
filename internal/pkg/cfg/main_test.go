@@ -1,4 +1,4 @@
-package application
+package cfg
 
 import (
 	"flag"
@@ -49,7 +49,7 @@ func TestConfigFromEnv(t *testing.T) {
 				t.Setenv(k, v)
 			}
 
-			cfg, err := NewConfig()
+			cfg, err := New()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
 		})
@@ -100,7 +100,7 @@ func TestConfigFromFlags(t *testing.T) {
 			//nolint:reassign //for tests only
 			os.Args = test.args
 
-			cfg, err := NewConfig()
+			cfg, err := New()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
 			origStateFun()
@@ -161,7 +161,7 @@ func TestConfig(t *testing.T) {
 			//nolint:reassign //for tests only
 			os.Args = test.args
 
-			cfg, err := NewConfig()
+			cfg, err := New()
 			assert.NoError(t, err)
 			assert.Equal(t, test.cfg, *cfg)
 			origStateFun()
