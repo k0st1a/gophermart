@@ -191,9 +191,9 @@ func (h *handler) getOrders(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var modelOrders []Order
-	for _, o := range orders {
-		modelOrders = append(modelOrders, Order(o))
+	modelOrders := make([]Order, len(orders))
+	for i := 0; i < len(orders); i++ {
+		modelOrders[i] = Order(orders[i])
 	}
 	log.Printf("modelOrders:%+v", modelOrders)
 
@@ -324,9 +324,9 @@ func (h *handler) getWithdrawals(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var modelWithdrawals []WithdrawOut
-	for _, w := range withdrawals {
-		modelWithdrawals = append(modelWithdrawals, WithdrawOut(w))
+	modelWithdrawals := make([]WithdrawOut, len(withdrawals))
+	for i := 0; i < len(withdrawals); i++ {
+		modelWithdrawals[i] = WithdrawOut(withdrawals[i])
 	}
 	log.Printf("modelWithdrawals:%+v", modelWithdrawals)
 
